@@ -2,7 +2,7 @@
 <Configuration>
     <CheckPoint>0</CheckPoint>
     <ITCode>admin</ITCode>
-    <TestPlanName></TestPlanName>
+    <TestPlanName>fafaegagagwafe</TestPlanName>
     <Case Order = "1" >
         <CaseID>1</CaseID>
         <CaseName>EnvSetting_Set_Machine_Unsleep</CaseName>

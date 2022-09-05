@@ -1,41 +1,81 @@
 use std::fs;
 
+use quick_xml::{de::Deserializer, DeError};
+use serde::Deserialize;
+
+#[derive(Debug, Deserialize, PartialEq)]  
+struct Configuration {
+    #[serde(rename="$unflatten=CheckPoint")]
+    check_point: i32,
+    #[serde(rename="$unflatten=ITCode")]
+    itcode: String,
+    #[serde(rename="$unflatten=TestPlanName")]
+    testplan_name: String,
+    #[serde(rename="$unflatten=Case")]
+    cases: Vec<Case>
+}
+
+#[derive(Debug, Deserialize, PartialEq)]
+struct Case{
+    #[serde(rename="$unflatten=CaseID")]
+    case_id: i32,
+    #[serde(rename="$unflatten=CaseName")]
+    case_name: String,
+    #[serde(rename="Order")]
+    order : i32,
+    #[serde(rename="$unflatten=Filter")]
+    filter: String,
+    #[serde(rename="$unflatten=PlanTime")]
+    plan_times: i32,
+    #[serde(rename="$unflatten=ActualTime")]
+    actual_times: i32,
+    #[serde(rename="$unflatten=Reboot")]
+    reboot: bool
+}
+
+fn from_str<'de, T>(s: &'de str) -> Result<T, DeError>
+where
+    T: Deserialize<'de>,
+{
+    // Log XML that we try to deserialize to see it in the failed tests output
+    dbg!(s);
+    let mut de = Deserializer::from_str(s);
+    let result = T::deserialize(&mut de);
+
+    // If type was deserialized, the whole XML document should be consumed
+    if let Ok(_) = result {
+        match <()>::deserialize(&mut de) {
+            Err(DeError::UnexpectedEof) => (),
+            e => panic!("Expected end `UnexpectedEof`, but got {:?}", e),
+        }
+    }
+
+    result
+}
+
 fn main() {
     use quick_xml::events::Event;
     use quick_xml::reader::Reader;
 
-    let xml = fs::read_to_string("default.xml").unwrap();
-    let mut reader = Reader::from_str(xml.as_str());
-    reader.trim_text(true);
-
-    let mut count = 0;
-    let mut txt = Vec::new();
-    let mut buf = Vec::new();
-
-    // The `Reader` does not implement `Iterator` because it outputs borrowed data (`Cow`s)
-    loop {
-        // NOTE: this is the generic case when we don't know about the input BufRead.
-        // when the input is a &str or a &[u8], we don't actually need to use another
-        // buffer, we could directly call `reader.read_event()`
-        match reader.read_event_into(&mut buf) {
-            Err(e) => panic!("Error at position {}: {:?}", reader.buffer_position(), e),
-            // exits the loop when reaching end of file
-            Ok(Event::Eof) => break,
-
-            Ok(Event::Start(e)) => match e.name().as_ref() {
-                b"Configuration" => println!(
-                    "attributes values: {:?}",
-                    e.)
-                ),
-                b"tag2" => count += 1,
-                _ => (),
-            },
-            Ok(Event::Text(e)) => txt.push(e.unescape().unwrap().into_owned()),
-
-            // There are several other `Event`s we do not consider here
-            _ => (),
-        }
-        // if we don't keep a borrow elsewhere, we can clear the buffer to keep memory usage low
-        buf.clear();
-    }
+    let s = fs::read_to_string("default.xml").unwrap();
+    let r:Configuration = from_str(&s).unwrap();
+    
+    // let mut reader = Reader::from_file("default.xml").unwrap();
+    // reader.trim_text(true);
+    // let mut buf = Vec::new();
+    // let mut d = Deserializer::from_reader(reader);
+    // let r = Configuration::deserialize(&mut d);
+    println!("{:?}",r);
+    // let mut count = 0;
+    // let mut buf = Vec::new();
+    // //let txt = Vec::new();
+    // loop {
+    //     match reader.read_event_into(&mut buf).unwrap() {
+    //         Event::Start(e) => println!("e:{:?}", e),
+    //         Event::Text(e) => println!("e:{:?}", e),
+    //         Event::Eof => break,
+    //         _ => (),
+    //     }
+    // }
+    //println!("{:?}", txt);
 }
