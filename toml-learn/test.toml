@@ -1,0 +1,42 @@
+# 字符串
+str = "this is a str"
+
+# 多行字符串
+multistr="""
+l1
+l2
+l3"""
+
+# 字面量字符串
+path = 'c:\ss\s2\s3'
+
+# 多行字面量
+multitext='''
+l1
+l2
+l3'''
+
+# 数字
+int1 = 21
+
+# bool
+bo = true
+
+# date
+date1 = 1979-05-27T07:32:00Z
+
+# array
+arr3 = [ [ 1, 2 ], [3, 4, 5] ]
+
+# table or hash
+[table]
+key = "value"
+bare_key = "value"
+bare-key = "value"
+"127.0.0.1" = "value"
+"character encoding" = "value"
+
+# 内嵌表格
+[table.subtable]
+name = "s1"
+value = "kk2"

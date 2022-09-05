@@ -1,0 +1,390 @@
+﻿<?xml version="1.0"?>
+<Configuration>
+    <CheckPoint>0</CheckPoint>
+    <ITCode>admin</ITCode>
+    <TestPlanName></TestPlanName>
+    <Case Order = "1" >
+        <CaseID>1</CaseID>
+        <CaseName>EnvSetting_Set_Machine_Unsleep</CaseName>
+        <Filter>test=~/PPA_1_SetMachineUnsleep/</Filter>
+        <PlanTime>1</PlanTime>
+        <ActualTime>0</ActualTime>
+        <Reboot>NO</Reboot>
+    </Case>
+    <Case Order = "2" >
+        <CaseID>2</CaseID>
+        <CaseName>OS_Event_Viewer_Check</CaseName>
+        <Filter>test=~/PPA_10010_OSEventViewerCheck/</Filter>
+        <PlanTime>1</PlanTime>
+        <ActualTime>0</ActualTime>
+        <Reboot>NO</Reboot>
+    </Case>
+    <Case Order = "3" >
+        <CaseID>3</CaseID>
+        <CaseName>OS_Bad_Return_Code_Check</CaseName>
+        <Filter>test=~/PPA_10020_OSBadReturn.*/</Filter>
+        <PlanTime>1</PlanTime>
+        <ActualTime>0</ActualTime>
+        <Reboot>NO</Reboot>
+    </Case>
+    <Case Order = "4" >
+        <CaseID>4</CaseID>
+        <CaseName>OS_PowerOptions_01_DTTPWS_Default_Activated_Power_Plan</CaseName>
+        <Filter>test=~/PPA_100101_OSPowerOptions01.*/</Filter>
+        <PlanTime>1</PlanTime>
+        <ActualTime>0</ActualTime>
+        <Reboot>NO</Reboot>
+    </Case>
+    <Case Order = "5" >
+        <CaseID>5</CaseID>
+        <CaseName>OS_PowerOptions_02_DTTP_BalancedTunOfftheDisplayCheck</CaseName>
+        <Filter>test=~/PPA_100102_OSPowerOptions02.*/</Filter>
+        <PlanTime>1</PlanTime>
+        <ActualTime>0</ActualTime>
+        <Reboot>NO</Reboot>
+    </Case>
+    <Case Order = "6" >
+        <CaseID>6</CaseID>
+        <CaseName>OS_PowerOptions_03_DTTP_BalancedPutTheComputerToSleep</CaseName>
+        <Filter>test=~/PPA_100103_OSPowerOptions03.*/</Filter>
+        <PlanTime>1</PlanTime>
+        <ActualTime>0</ActualTime>
+        <Reboot>NO</Reboot>
+    </Case>
+    <Case Order = "7" >
+        <CaseID>7</CaseID>
+        <CaseName>OS_PowerOptions_04_DT_BalancedTurnOffDisk</CaseName>
+        <Filter>test=~/PPA_100104_OSPowerOptions04.*/</Filter>
+        <PlanTime>1</PlanTime>
+        <ActualTime>0</ActualTime>
+        <Reboot>NO</Reboot>
+    </Case>
+    <Case Order = "8" >
+        <CaseID>8</CaseID>
+        <CaseName>OS_PowerOptions_05_DT_BalancedHibernateAfter</CaseName>
+        <Filter>test=~/PPA_100105_OSPowerOptions05.*/</Filter>
+        <PlanTime>1</PlanTime>
+        <ActualTime>0</ActualTime>
+        <Reboot>NO</Reboot>
+    </Case>
+    <Case Order = "9" >
+        <CaseID>9</CaseID>
+        <CaseName>OS_PowerOptions_06_DT_BalancedPowerButtonActionCheck</CaseName>
+        <Filter>test=~/PPA_100106_OSPowerOptions06.*/</Filter>
+        <PlanTime>1</PlanTime>
+        <ActualTime>0</ActualTime>
+        <Reboot>NO</Reboot>
+    </Case>
+    <Case Order = "10" >
+        <CaseID>10</CaseID>
+        <CaseName>OS_PowerOptions_07_TPAIO_BalancedDisplayBrightnessCheck</CaseName>
+        <Filter>test=~/PPA_100107_OSPowerOptions07.*/</Filter>
+        <PlanTime>1</PlanTime>
+        <ActualTime>0</ActualTime>
+        <Reboot>NO</Reboot>
+    </Case>
+    <Case Order = "11" >
+        <CaseID>11</CaseID>
+        <CaseName>OS_PowerOptions_08_DTWS_LenovoDefaultTurnOffTheDisplay</CaseName>
+        <Filter>test=~/PPA_100108_OSPowerOptions08.*/</Filter>
+        <PlanTime>1</PlanTime>
+        <ActualTime>0</ActualTime>
+        <Reboot>NO</Reboot>
+    </Case>
+    <Case Order = "12" >
+        <CaseID>12</CaseID>
+        <CaseName>OS_PowerOptions_09_DTWS_LenovoDefaultPutTheComputerToSleep</CaseName>
+        <Filter>test=~/PPA_100109_OSPowerOptions09.*/</Filter>
+        <PlanTime>1</PlanTime>
+        <ActualTime>0</ActualTime>
+        <Reboot>NO</Reboot>
+    </Case>
+    <Case Order = "13" >
+        <CaseID>13</CaseID>
+        <CaseName>OS_PowerOptions_10_DT_LenovoDefaultTurnOffHardDisk</CaseName>
+        <Filter>test=~/PPA_100110_OSPowerOptions10.*/</Filter>
+        <PlanTime>1</PlanTime>
+        <ActualTime>0</ActualTime>
+        <Reboot>NO</Reboot>
+    </Case>
+    <Case Order = "14" >
+        <CaseID>14</CaseID>
+        <CaseName>OS_PowerOptions_11_DT_LenovoDefaultHibernateAfter</CaseName>
+        <Filter>test=~/PPA_100111_OSPowerOptions11.*/</Filter>
+        <PlanTime>1</PlanTime>
+        <ActualTime>0</ActualTime>
+        <Reboot>NO</Reboot>
+    </Case>
+    <Case Order = "15" >
+        <CaseID>15</CaseID>
+        <CaseName>OS_PowerOptions_12_DT_LenovoDefaultPowerButtonAction</CaseName>
+        <Filter>test=~/PPA_100112_OSPowerOptions12.*/</Filter>
+        <PlanTime>1</PlanTime>
+        <ActualTime>0</ActualTime>
+        <Reboot>NO</Reboot>
+    </Case>
+    <Case Order = "16" >
+        <CaseID>16</CaseID>
+        <CaseName>OS_PowerOptions_13_DT_LenovoDefaultDisplayBrightness</CaseName>
+        <Filter>test=~/PPA_100113_OSPowerOptions13.*/</Filter>
+        <PlanTime>1</PlanTime>
+        <ActualTime>0</ActualTime>
+        <Reboot>NO</Reboot>
+    </Case>
+    <Case Order = "17" >
+        <CaseID>17</CaseID>
+        <CaseName>OS_PowerOptions_14_Gaming_CECPowerSettingsCheck</CaseName>
+        <Filter>test=~/PPA_100114_OSPowerOptions14.*/</Filter>
+        <PlanTime>1</PlanTime>
+        <ActualTime>0</ActualTime>
+        <Reboot>NO</Reboot>
+    </Case>
+    <Case Order = "18" >
+        <CaseID>19</CaseID>
+        <CaseName>OS_CPU_Memory_Occupancy</CaseName>
+        <Filter>test=~/PPA_100150_OSCPUMemoryOccupancy.*/</Filter>
+        <PlanTime>1</PlanTime>
+        <ActualTime>0</ActualTime>
+        <Reboot>NO</Reboot>
+    </Case>
+    <Case Order = "19" >
+        <CaseID>20</CaseID>
+        <CaseName>OS_Folder_Check_02_Disk_Name_And_File_Check</CaseName>
+        <Filter>test=~/PPA_20012_OSFolderCheck_02_DiskName.*/</Filter>
+        <PlanTime>1</PlanTime>
+        <ActualTime>0</ActualTime>
+        <Reboot>NO</Reboot>
+    </Case>
+    <Case Order = "20" >
+        <CaseID>21</CaseID>
+        <CaseName>OS_DeskTop_Check_01_Desktop_icon</CaseName>
+        <Filter>test=~/PPA_20000_OSDeskTopCheck01.*/</Filter>
+        <PlanTime>1</PlanTime>
+        <ActualTime>0</ActualTime>
+        <Reboot>NO</Reboot>
+    </Case>
+    <Case Order = "21" >
+        <CaseID>22</CaseID>
+        <CaseName>OS_TaskBar_Check</CaseName>
+        <Filter>test=~/PPA_20000_OSTaskBarCheck.*/</Filter>
+        <PlanTime>1</PlanTime>
+        <ActualTime>0</ActualTime>
+        <Reboot>NO</Reboot>
+    </Case>
+    <Case Order = "22" >
+        <CaseID>23</CaseID>
+        <CaseName>OS_Notification_Area_Check</CaseName>
+        <Filter>test=~/PPA_20000_OSNotificationAreaCheck.*/</Filter>
+        <PlanTime>1</PlanTime>
+        <ActualTime>0</ActualTime>
+        <Reboot>NO</Reboot>
+    </Case>
+    <Case Order = "23" >
+        <CaseID>24</CaseID>
+        <CaseName>OS_Start_Menu_01_Lenovo_Group_Check</CaseName>
+        <Filter>test=~/PPA_20000_OSStartMenu01LenovoGroup.*/</Filter>
+        <PlanTime>1</PlanTime>
+        <ActualTime>0</ActualTime>
+        <Reboot>NO</Reboot>
+    </Case>
+    <Case Order = "24" >
+        <CaseID>25</CaseID>
+        <CaseName>OS_Start_Menu_02_Microsoft_Group_Check</CaseName>
+        <Filter>test=~/PPA_20000_OSStartMenu02MicrosoftGroup.*/</Filter>
+        <PlanTime>1</PlanTime>
+        <ActualTime>0</ActualTime>
+        <Reboot>NO</Reboot>
+    </Case>
+    <Case Order = "25" >
+        <CaseID>26</CaseID>
+        <CaseName>OS_Start_Menu_03_Navigation_Panel_Check</CaseName>
+        <Filter>test=~/PPA_20000_OSStartMenu03NavigationPanel.*/</Filter>
+        <PlanTime>1</PlanTime>
+        <ActualTime>0</ActualTime>
+        <Reboot>NO</Reboot>
+    </Case>
+    <Case Order = "26" >
+        <CaseID>27</CaseID>
+        <CaseName>OS_Search_Box_Check</CaseName>
+        <Filter>test=~/PPA_20000_OSSearchBoxCheck.*/</Filter>
+        <PlanTime>1</PlanTime>
+        <ActualTime>0</ActualTime>
+        <Reboot>NO</Reboot>
+    </Case>
+    <Case Order = "27" >
+        <CaseID>28</CaseID>
+        <CaseName>OS_Desktop_Check_For_Win_11</CaseName>
+        <Filter>test=~/PPA_20003_OSDesktopCheckForWin11.*/</Filter>
+        <PlanTime>1</PlanTime>
+        <ActualTime>0</ActualTime>
+        <Reboot>NO</Reboot>
+    </Case>
+    <Case Order = "28" >
+        <CaseID>29</CaseID>
+        <CaseName>OS_Search_Box_Check_For_Win_11</CaseName>
+        <Filter>test=~/PPA_20003_OSSearchBoxCheckForWin11.*/</Filter>
+        <PlanTime>1</PlanTime>
+        <ActualTime>0</ActualTime>
+        <Reboot>NO</Reboot>
+    </Case>
+    <Case Order = "29" >
+        <CaseID>30</CaseID>
+        <CaseName>OS_Notification_Area_Check_For_Win_11</CaseName>
+        <Filter>test=~/PPA_20003_OSNotificationAreaCheckForWin11.*/</Filter>
+        <PlanTime>1</PlanTime>
+        <ActualTime>0</ActualTime>
+        <Reboot>NO</Reboot>
+    </Case>
+    <Case Order = "30" >
+        <CaseID>31</CaseID>
+        <CaseName>OS_Taskbar_Check_For_Win_11</CaseName>
+        <Filter>test=~/PPA_20003_OSTaskbarCheckForWin11.*/</Filter>
+        <PlanTime>1</PlanTime>
+        <ActualTime>0</ActualTime>
+        <Reboot>NO</Reboot>
+    </Case>
+    <Case Order = "31" >
+        <CaseID>32</CaseID>
+        <CaseName>OS_Windows_Default_Themes_Check</CaseName>
+        <Filter>test=~/PPA_200_OSWindowsDefaultThemesCheck.*/</Filter>
+        <PlanTime>1</PlanTime>
+        <ActualTime>0</ActualTime>
+        <Reboot>NO</Reboot>
+    </Case>
+    <Case Order = "32" >
+        <CaseID>33</CaseID>
+        <CaseName>OS_Wallpaper_03_WSTP_Wallpaper_Folder_Check</CaseName>
+        <Filter>test=~/PPA_200_OSWallpaper03WSTPWallpaperFolder.*/</Filter>
+        <PlanTime>1</PlanTime>
+        <ActualTime>0</ActualTime>
+        <Reboot>NO</Reboot>
+    </Case>
+    <Case Order = "33" >
+        <CaseID>34</CaseID>
+        <CaseName>OS_Device_Manager_01_Yellow_Bang_Check</CaseName>
+        <Filter>test=~/PPA_20010_OSDeviceManager01YellowBangCheck.*/</Filter>
+        <PlanTime>1</PlanTime>
+        <ActualTime>0</ActualTime>
+        <Reboot>NO</Reboot>
+    </Case>
+    <Case Order = "34" >
+        <CaseID>35</CaseID>
+        <CaseName>OS_Device_Manager_03_WOL_Check_For_NBTS</CaseName>
+        <Filter>test=~/PPA_20010_OSDeviceManager03WOLCheck.*/</Filter>
+        <PlanTime>1</PlanTime>
+        <ActualTime>0</ActualTime>
+        <Reboot>NO</Reboot>
+    </Case>
+    <Case Order = "35" >
+        <CaseID>36</CaseID>
+        <CaseName>OS_Lenovo_Audit_Date_01_Registry_Key_Check</CaseName>
+        <Filter>test=~/PPA_20010_OSLenovoAuditDate01RegistryKeyCheck.*/</Filter>
+        <PlanTime>1</PlanTime>
+        <ActualTime>0</ActualTime>
+        <Reboot>NO</Reboot>
+    </Case>
+    <Case Order = "36" >
+        <CaseID>37</CaseID>
+        <CaseName>OS_Lenovo_Audit_Date_02_Add_Remove_Programs_Check</CaseName>
+        <Filter>test=~/PPA_20010_OSLenovoAuditDate02AddRemovePrograms.*/</Filter>
+        <PlanTime>1</PlanTime>
+        <ActualTime>0</ActualTime>
+        <Reboot>NO</Reboot>
+    </Case>
+    <Case Order = "37" >
+        <CaseID>38</CaseID>
+        <CaseName>OS_Image_Adoption_Validation_Check</CaseName>
+        <Filter>test=~/PPA_20020_ImageAdoptionValidationCheck/</Filter>
+        <PlanTime>1</PlanTime>
+        <ActualTime>0</ActualTime>
+        <Reboot>NO</Reboot>
+    </Case>
+    <Case Order = "38" >
+        <CaseID>39</CaseID>
+        <CaseName>OS_OEM_MRK_File_Check</CaseName>
+        <Filter>test=~/PPA_20030_OSOEMMRKFileCheck.*/</Filter>
+        <PlanTime>1</PlanTime>
+        <ActualTime>0</ActualTime>
+        <Reboot>NO</Reboot>
+    </Case>
+    <Case Order = "39" >
+        <CaseID>40</CaseID>
+        <CaseName>OS_Disk_Management_TP_TS_01_Volume_And_Partition_Check</CaseName>
+        <Filter>test=~/PPA_20045_OSDiskManagement_TP_TS_01Volume.*/</Filter>
+        <PlanTime>1</PlanTime>
+        <ActualTime>0</ActualTime>
+        <Reboot>NO</Reboot>
+    </Case>
+    <Case Order = "40" >
+        <CaseID>41</CaseID>
+        <CaseName>OS_Disk_Management_TP_01_Hdd_Install_On</CaseName>
+        <Filter>test=~/PPA_20040_OSDiskManagementTP01.*/</Filter>
+        <PlanTime>1</PlanTime>
+        <ActualTime>0</ActualTime>
+        <Reboot>NO</Reboot>
+    </Case>
+    <Case Order = "41" >
+        <CaseID>42</CaseID>
+        <CaseName>OS_SMBIOS_CheckTypeN</CaseName>
+        <Filter>test=~/PPA_20011_OSSMBIOS.*/</Filter>
+        <PlanTime>1</PlanTime>
+        <ActualTime>0</ActualTime>
+        <Reboot>NO</Reboot>
+    </Case>
+    <Case Order = "42" >
+        <CaseID>43</CaseID>
+        <CaseName>OS_Disk_Management_DT_01_Think_LenovoV_Comsumer_ROW_Gaming_ROW_VolumeCheck</CaseName>
+        <Filter>test=~/PPA_20041_OSDiskManagementDT01.*/</Filter>
+        <PlanTime>1</PlanTime>
+        <ActualTime>0</ActualTime>
+        <Reboot>NO</Reboot>
+    </Case>
+    <Case Order = "43" >
+        <CaseID>44</CaseID>
+        <CaseName>OS_Disk_Management_DT_02_ThinkLenovoVComsumerROWGamingROW_Disks_Check</CaseName>
+        <Filter>test=~/PPA_20041_OSDiskManagementDT02.*/</Filter>
+        <PlanTime>1</PlanTime>
+        <ActualTime>0</ActualTime>
+        <Reboot>NO</Reboot>
+    </Case>
+    <Case Order = "44" >
+        <CaseID>45</CaseID>
+        <CaseName>OS_Disk_Management_DT_03_KQYThinkEConsumerPRCGamingPRC_Partitionc_heck_Without_OKR</CaseName>
+        <Filter>test=~/PPA_20043_OSDiskManagementDT03.*/</Filter>
+        <PlanTime>1</PlanTime>
+        <ActualTime>0</ActualTime>
+        <Reboot>NO</Reboot>
+    </Case>
+    <Case Order = "45" >
+        <CaseID>46</CaseID>
+        <CaseName>OS_Disk_Management_DT_04_KQYThinkEConsumerPRCGamingPRC_Partition_check_WithOKR</CaseName>
+        <Filter>test=~/PPA_20043_OSDiskManagementDT04.*/</Filter>
+        <PlanTime>1</PlanTime>
+        <ActualTime>0</ActualTime>
+        <Reboot>NO</Reboot>
+    </Case>
+    <Case Order = "46" >
+        <CaseID>47</CaseID>
+        <CaseName>OS_MDA01_Jumpstart_DCVT_Check</CaseName>
+        <Filter>test=~/PPA_20050_OS_MDA01JumpstartDCVT.*/</Filter>
+        <PlanTime>1</PlanTime>
+        <ActualTime>0</ActualTime>
+        <Reboot>NO</Reboot>
+    </Case>
+    <Case Order = "47" >
+        <CaseID>48</CaseID>
+        <CaseName>OS_OEM_APPS_shortcut_Check_01_PIN</CaseName>
+        <Filter>test=~/PPA_200_OSOEMAPPSshortcutCheck01.*/</Filter>
+        <PlanTime>1</PlanTime>
+        <ActualTime>0</ActualTime>
+        <Reboot>NO</Reboot>
+    </Case>
+    <Case Order = "48" >
+        <CaseID>49</CaseID>
+        <CaseName>OS_Powercfg_Check</CaseName>
+        <Filter>test=~/PPA_20080_OSPowercfgCheck.*/</Filter>
+        <PlanTime>1</PlanTime>
+        <ActualTime>0</ActualTime>
+        <Reboot>NO</Reboot>
+    </Case>
+</Configuration>

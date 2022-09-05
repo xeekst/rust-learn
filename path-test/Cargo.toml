@@ -1,0 +1,13 @@
+[package]
+name = "path-test"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+pbr = "1.0.4"
+rand = "0.8.5"
+log = "0.4.17"
+fern = "0.6.1"
+chrono = "0.4.19"
