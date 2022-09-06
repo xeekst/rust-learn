@@ -1,4 +1,4 @@
-use std::fs;
+use std::{fs, path::PathBuf, env};
 
 use quick_xml::{de::Deserializer, DeError};
 use serde::Deserialize;
@@ -57,15 +57,18 @@ fn main() {
     use quick_xml::events::Event;
     use quick_xml::reader::Reader;
 
-    let s = fs::read_to_string("default.xml").unwrap();
-    let r:Configuration = from_str(&s).unwrap();
     
+    println!("current dir: {:?}",  env::current_dir());
+    println!("current dir: {:?}",  env::current_exe().unwrap().parent());
+    // let s = fs::read_to_string("default.xml").unwrap();
+    // let r:Configuration = from_str(&s).unwrap();
+    // println!("{:?}",r);
+
     // let mut reader = Reader::from_file("default.xml").unwrap();
     // reader.trim_text(true);
     // let mut buf = Vec::new();
     // let mut d = Deserializer::from_reader(reader);
     // let r = Configuration::deserialize(&mut d);
-    println!("{:?}",r);
     // let mut count = 0;
     // let mut buf = Vec::new();
     // //let txt = Vec::new();
