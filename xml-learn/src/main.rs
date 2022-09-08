@@ -42,11 +42,19 @@ where
     let mut de = Deserializer::from_str(s);
     let result = T::deserialize(&mut de);
 
-    // If type was deserialized, the whole XML document should be consumed
+    // If type was deserialized, the whole XML document should be consumed, so continue consume, it will be UnexpectedEof
     if let Ok(_) = result {
         match <()>::deserialize(&mut de) {
-            Err(DeError::UnexpectedEof) => (),
-            e => panic!("Expected end `UnexpectedEof`, but got {:?}", e),
+            Err(DeError::UnexpectedEof) => {
+                println!("1");
+
+                ()
+            },
+            e => {
+                println!("2");
+
+                panic!("Expected end `UnexpectedEof`, but got {:?}", e)
+            },
         }
     }
 
@@ -60,9 +68,9 @@ fn main() {
     
     println!("current dir: {:?}",  env::current_dir());
     println!("current dir: {:?}",  env::current_exe().unwrap().parent());
-    // let s = fs::read_to_string("default.xml").unwrap();
-    // let r:Configuration = from_str(&s).unwrap();
-    // println!("{:?}",r);
+    let s = fs::read_to_string("default.xml").unwrap();
+    let r:Configuration = from_str(&s).unwrap();
+    println!("{:?}",r);
 
     // let mut reader = Reader::from_file("default.xml").unwrap();
     // reader.trim_text(true);
@@ -80,5 +88,5 @@ fn main() {
     //         _ => (),
     //     }
     // }
-    //println!("{:?}", txt);
+    // println!("{:?}", txt);
 }
