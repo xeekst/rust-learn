@@ -1,5 +1,6 @@
 use std::{
-    fs,
+    fs::{self, DirBuilder, File, OpenOptions},
+    io::{BufRead, BufReader, Read, Write},
     path::{self, Path, PathBuf},
 };
 
@@ -46,15 +47,82 @@ fn main() {
     // 删除一个非空目录
     fs::remove_dir("dir1").unwrap();
 
-
     //Path & PathBuf
+    let dirpath = Path::new("dir1");
+    println!("dirpath: {:?}", dirpath);
+    println!("dirpath buf: {:?}", dirpath.to_path_buf());
+    let dirpath_join = dirpath.join("dir2").join("dir3");
+    println!("dirpath_join: {:?}", dirpath_join);
 
-    //File 
-   // fs::File
+    let dirpath_buf = PathBuf::from("dir1/dir2/dir3/dir4");
+    println!("dirpath_buf: {:?}", dirpath_buf);
+    let dirbufjoin = dirpath_buf.join("dir2").join("dir3");
+
+    //File 对一个文件进行只读操作
+    // 创建文件
+    //let _ = File::create("stdfsFile").unwrap();
+    // 只读方式
+    let file = File::open("multifile").unwrap();
+    println!("ready only file: {:?}", file.metadata());
+    // 按行读大文件
+    println!("Read a text file line by line");
+    read_file_line_by_line("multifile").unwrap();
+    // 按buff来读
+    println!("\nRead a file with a buffer");
+    read_file_buffer("multifile").unwrap();
+    println!("Read a file all content");
+    read_file_string("multifile").unwrap();
+
+    // 写的文件
+    let mut mutfile = OpenOptions::new()
+        .create(true)
+        .append(true)
+        .open("appendfile")
+        .unwrap();
+    mutfile.write(b"append file success").unwrap();
+    mutfile.flush().unwrap();
 
     //DirBuilder
     //fs::DirBuilder::
-    //
+    fs::remove_dir("dirbuilder").unwrap();
+    let dirbuilder = DirBuilder::new();
+    let build_r = dirbuilder.create("dirbuilder").unwrap();
 
     println!("Hello, world!");
+}
+
+// 1. read large file line by line
+fn read_file_line_by_line(filepath: &str) -> Result<(), Box<dyn std::error::Error>> {
+    let file = File::open(filepath)?;
+    let reader = BufReader::new(file);
+
+    for line in reader.lines() {
+        println!("{}", line?);
+    }
+
+    Ok(())
+}
+
+// 2. read large file by buff
+fn read_file_buffer(filepath: &str) -> Result<(), Box<dyn std::error::Error>> {
+    const BUFFER_LEN: usize = 64;
+    let mut buffer = [0u8; BUFFER_LEN];
+    let mut file = File::open(filepath)?;
+
+    loop {
+        let read_count = file.read(&mut buffer)?;
+        println!("{:?}", &buffer[..read_count]);
+
+        if read_count != BUFFER_LEN {
+            break;
+        }
+    }
+    Ok(())
+}
+
+// 3. read small file by once
+fn read_file_string(filepath: &str) -> Result<String, Box<dyn std::error::Error>> {
+    let data = fs::read_to_string(filepath)?;
+    println!("read_file_string: {:?}", data);
+    Ok(data)
 }
