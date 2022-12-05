@@ -2,6 +2,8 @@ use chrono::Local;
 use std::{sync::Arc, thread, time::Duration};
 use tokio::{
     self,
+    io::{self, Interest},
+    net::{TcpSocket, TcpStream},
     runtime::Runtime,
     sync::{self, broadcast, oneshot, watch, Barrier, Notify, RwLock, Semaphore},
     task::{self, JoinError},
@@ -379,6 +381,29 @@ fn await_semaphore() {
     });
 }
 
-fn main() {
-    await_semaphore();
+/// tokio tcp server
+fn test_tcp_server() {
+    let rt = Runtime::new().unwrap();
+    rt.block_on(async {
+        let listener = TcpListener::bind("127.0.0.1:8888").await.unwrap();
+        loop {
+            let (client, client_sock_addr) = listener.accept().await.unwrap();
+            tokio::spawn(async move {
+                // 该任务负责处理client
+            });
+        }
+    });
 }
+
+fn test_split_read_write() {
+    let rt = Runtime::new().unwrap();
+    rt.block_on(async {
+        let conn = TcpStream::connect("127.0.0.1:8888").await.unwrap();
+        let (mut read_half, mut write_half) = conn.into_split();
+    });
+}
+
+use tokio::net::TcpListener;
+
+#[tokio::main]
+async fn main() {}
