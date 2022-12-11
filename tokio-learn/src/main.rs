@@ -1,4 +1,5 @@
 use chrono::Local;
+use serde::{Serialize, Deserialize};
 use std::{sync::Arc, thread, time::Duration};
 use tokio::{
     self,
@@ -9,6 +10,7 @@ use tokio::{
     task::{self, JoinError},
     time,
 };
+use tokio_stream::{self as stream, StreamExt as TokioStreamExt};
 
 fn now() -> String {
     Local::now().format("%F %T").to_string()
@@ -403,7 +405,184 @@ fn test_split_read_write() {
     });
 }
 
-use tokio::net::TcpListener;
+fn test_tokio_stream() {
+    let rt = Runtime::new().unwrap();
+    rt.block_on(async {
+        let mut st = stream::iter(vec![1, 2, 3]);
+        while let Some(value) = futures_util::StreamExt::next(&mut st).await {
+            println!("value:{}", value);
+        }
+    })
+}
 
-#[tokio::main]
-async fn main() {}
+use futures_util::stream::{SplitSink, SplitStream};
+use futures_util::{SinkExt, StreamExt};
+use tokio::net::TcpListener;
+use tokio::sync::mpsc;
+use tokio_util::codec::{Framed, LinesCodec, self};
+
+fn test_frame_line() {
+    let rt = Runtime::new().unwrap();
+    rt.block_on(async {
+        let server = TcpListener::bind("127.0.0.1:8888").await.unwrap();
+        while let Ok((client_stream, client_addr)) = server.accept().await {
+            tokio::spawn(async move { process_client(client_stream).await });
+        }
+    })
+}
+
+async fn process_client(client_stream: TcpStream) {
+    let framed = Framed::new(client_stream, LinesCodec::new());
+    let (frame_writer, frame_reader) = framed.split::<String>();
+    let (msg_tx, msg_rx) = mpsc::channel::<String>(100);
+
+    let mut read_task = tokio::spawn(async move {
+        read_from_client(frame_reader, msg_tx).await;
+    });
+
+    let mut write_task = tokio::spawn(async move {
+        write_to_client(frame_writer, msg_rx).await;
+    });
+
+    if tokio::try_join!(&mut read_task, &mut write_task).is_err() {
+        eprintln!("read_task/write_task terminated");
+        read_task.abort();
+        write_task.abort();
+    };
+}
+
+type LineFramedStream = SplitStream<Framed<TcpStream, LinesCodec>>;
+type LineFramedSink = SplitSink<Framed<TcpStream, LinesCodec>, String>;
+
+async fn read_from_client(mut reader: LineFramedStream, msg_tx: mpsc::Sender<String>) {
+    loop {
+        match tokio_stream::StreamExt::next(&mut reader).await {
+            None => {
+                println!("client closed");
+                break;
+            }
+            Some(Err(e)) => {
+                eprintln!("read from client error: {}", e);
+                break;
+            }
+            Some(Ok(str)) => {
+                println!("read from client. content: {}", str);
+                // 将内容发送给writer，让writer响应给客户端，
+                // 如果无法发送给writer，继续从客户端读取内容将没有意义，因此break退出
+                if msg_tx.send(str).await.is_err() {
+                    eprintln!("receiver closed");
+                }
+            }
+        }
+    }
+}
+
+async fn write_to_client(mut writer: LineFramedSink, mut msg_rx: mpsc::Receiver<String>) {
+    while let Some(str) = msg_rx.recv().await {
+        println!("write_to_client:{}", str);
+        if writer.send(str).await.is_err() {
+            eprintln!("write to client failed");
+            break;
+        }
+    }
+}
+
+// /// 请求
+// #[derive(Debug, Serialize, Deserialize)]
+// pub struct Request {
+//     pub sym: String,
+//     pub from: u64,
+//     pub to: u64,
+// }
+
+// /// 响应
+// #[derive(Debug, Serialize, Deserialize)]
+// pub struct Response(pub Option<Klines>);
+
+// /// 对请求和响应的封装，之后客户端和服务端都将通过Sink和Stream来基于该类型通信
+// #[derive(Debug, Serialize, Deserialize)]
+// pub enum RstResp {
+//     Request(Request),
+//     Response(Response),
+// }
+
+// pub struct RstRespCodec;
+// impl RstRespCodec {
+//     /// 最多传送1G数据
+//     const MAX_SIZE: usize = 1024 * 1024 * 1024 * 8;
+// }
+
+// impl codec::Encoder<RstResp> for RstRespCodec {
+//     type Error = bincode::Error;
+//     // 本示例中使用bincode将RstResp转换为&[u8]，也可以使用serde_json::to_vec()，前者效率更高一些
+//     fn encode(&mut self, item: RstResp, dst: &mut BytesMut) -> Result<(), Self::Error> {
+//         let data = bincode::serialize(&item)?;
+//         let data = data.as_slice();
+      
+//         // 要传输的实际数据的长度
+//         let data_len = data.len();
+//         if data_len > Self::MAX_SIZE {
+//             return Err(bincode::Error::new(bincode::ErrorKind::Custom(
+//                 "frame is too large".to_string(),
+//             )));
+//         }
+      
+//         // 最大传输u32的数据(可最多512G)，
+//         // 表示数据长度的u32数值占用4个字节
+//         dst.reserve(data_len + 4);
+      
+//         // 先将长度值写入dst，即帧首，
+//         // 写入的字节序是大端的u32，读取时也要大端格式读取，
+//         // 也有小端的方法`put_u32_le()`，读取时也得小端读取
+//         dst.put_u32(data_len as u32);
+      
+//         // 再将实际数据放入帧尾
+//         dst.extend_from_slice(data);
+//         Ok(())
+//     }
+// }
+
+// /// 实现Decoder，将字节数据转换为RstResp
+// impl codec::Decoder for RstRespCodec {
+//     type Item = RstResp;
+//     type Error = std::io::Error;
+//     // 从不断被填充的Bytes buf中读取数据，并将其转换到目标类型
+//     fn decode(&mut self, src: &mut BytesMut) -> Result<Option<Self::Item>, Self::Error> {
+//         let buf_len = src.len();
+
+//         // 如果buf中的数据量连长度声明的大小都不足，则先跳过等待后面更多数据的到来
+//         if buf_len < 4 { return Ok(None); }
+
+//         // 先读取帧首，获得声明的帧中实际数据大小
+//         let mut length_bytes = [0u8; 4];
+//         length_bytes.copy_from_slice(&src[..4]);
+//         let data_len = u32::from_be_bytes(length_bytes) as usize;
+//         if data_len > Self::MAX_SIZE {
+//             return Err(std::io::Error::new(
+//                 std::io::ErrorKind::InvalidData,
+//                 format!("Frame of length {} is too large.", data_len),
+//             ));
+//         }
+
+//         // 帧的总长度为 4 + frame_len
+//         let frame_len = data_len + 4;
+
+//         // buf中数据量不够，跳过，并预先申请足够的空闲空间来存放该帧后续到来的数据
+//         if buf_len < frame_len {
+//             src.reserve(frame_len - buf_len);
+//             return Ok(None);
+//         }
+
+//         // 数据量足够了，从buf中取出数据转编成帧，并转换为指定类型后返回
+//         // 需同时将buf截断(split_to会截断)
+//         let frame_bytes = src.split_to(frame_len);
+//         match bincode::deserialize::<RstResp>(&frame_bytes[4..]) {
+//             Ok(frame) => Ok(Some(frame)),
+//             Err(e) => Err(std::io::Error::new(std::io::ErrorKind::InvalidData, e)),
+//         }
+//     }
+// }
+
+fn main() {
+    test_frame_line();
+}
