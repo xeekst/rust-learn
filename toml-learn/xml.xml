@@ -1,0 +1,21 @@
+<Configuration>
+    <CheckPoint>0</CheckPoint>
+    <ITCode>luotao9</ITCode>
+    <TestPlanName>tt</TestPlanName>
+    <Case Order="1">
+        <CaseID>18</CaseID>
+        <CaseName>OS_PowerOptions_15_DTTPWS_RestorePowerSettingsFunction</CaseName>
+        <Filter>test=~/PPA_100115_OSPowerOptions15.*/</Filter>
+        <PlanTime>1</PlanTime>
+        <ActualTime>0</ActualTime>
+        <Reboot>false</Reboot>
+    </Case>
+    <Case Order="2">
+        <CaseID>22</CaseID>
+        <CaseName>OS_TaskBarCheck_010_TaskbarIcon_Win10</CaseName>
+        <Filter>test=~/PPA_20000_OSTaskBarCheck.*/</Filter>
+        <PlanTime>1</PlanTime>
+        <ActualTime>0</ActualTime>
+        <Reboot>false</Reboot>
+    </Case>
+</Configuration>

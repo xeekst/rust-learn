@@ -6,7 +6,7 @@ use std::io::{self, Read};
 fn read_username_from_file() -> Result<String, io::Error> {
     let f = File::open("hello.txt");
     let mut f = match f {
-        Ok(file) => file,
+        Ok(file) => { file },
         Err(e) => return Err(e),
     };
 
@@ -43,6 +43,10 @@ fn last_char_of_first_line(text: &str) -> Option<char> {
 }
 
 fn main() {
+    let f = read_username_from_file();
+    println!("{:?}",f);
+    return;
+
     let mut g = Guess::new(11);
     println!("Guess:{:?}", g.value);
     g.value = 22;
@@ -88,6 +92,46 @@ fn main() {
     println!("p3.x = {}, p3.y = {}", p3.x, p3.y);
 
     println!("Hello, world!");
+
+    let s1 = Some("abcde");
+    let s2 = Some(5);
+    let s3 = Some(5);
+    let s3_fn = || Some(5);
+    let s3_a_fn = |_| Some(5);
+    let s4 = Some(5);
+    let s4_fn = || Option::<usize>::None;
+    let s4_a_fn = |_| Option::<usize>::None;
+
+    let n1: Option<&str> = None;
+    let n2: Option<usize> = None;
+
+    let o1: Result<&str, &str> = Ok("abcde");
+    let o2: Result<usize, &str> = Ok(5);
+
+    let e1: Result<&str, &str> = Err("abcde");
+    let e2: Result<usize, &str> = Err("abcde");
+
+    let fn_character_count = |s: &str| s.chars().count();
+    let os = s2.or(s3).or(s4);
+    let ands = s2.and(s3).and(s4);
+    let orelse = s2.or_else(s3_fn).or_else(s4_fn);
+    // 使用上一个值的正确的值作为输入继续执行
+    let andthen = s2.and_then(s3_a_fn).and_then(s4_a_fn);
+    println!("{:?},", s1.map(fn_character_count)); // Some1 map = Some2
+    println!("{:?},", n1.map(fn_character_count)); // None map = None
+
+    let o1: Result<&str, &str> = Ok("abcde");
+    let o2: Result<&str, isize> = Ok("abcde");
+
+    let e1: Result<&str, &str> = Err("404");
+    let e2: Result<&str, isize> = Err(404);
+
+    let fn_character_count = |s: &str| -> isize { s.parse().unwrap() }; // 该函数返回一个 isize
+
+    //map_err 只 map Err 类型的
+    println!("{:?},{:?}", o1, o1.map_err(fn_character_count)); // Ok map_err = Ok
+    println!("{:?},{:?}", e1, e1.map_err(fn_character_count)); // Err1 map_err = Err2
+    return;
 }
 
 pub struct Guess {
@@ -184,3 +228,77 @@ impl<X1, Y1> Point<X1, Y1> {
         }
     }
 }
+
+// use clap::{ArgGroup, Parser};
+
+// #[derive(Parser)]
+// #[command(author, version, about, long_about = None)]
+// #[command(group(
+//             ArgGroup::new("vers")
+//                 .required(true)
+//                 .args(["set_ver", "major",  "patch"]),
+//         ))]
+// struct Cli {
+//     /// set version manually
+//     #[arg(long, value_name = "VER")]
+//     set_ver: Option<String>,
+
+//     /// auto inc major
+//     #[arg(long)]
+//     major: bool,
+
+//     /// auto inc minor
+//     #[arg(long)]
+//     minor: bool,
+
+//     /// auto inc patch
+//     #[arg(long)]
+//     patch: bool,
+
+//     /// some regular input
+//     #[arg(group = "input")]
+//     input_file: Option<String>,
+
+//     /// some special input argument
+//     #[arg(long, group = "input")]
+//     spec_in: Option<String>,
+
+//     #[arg(short, requires = "input")]
+//     config: Option<String>,
+// }
+
+// fn main() {
+//     let cli = Cli::parse();
+
+//     // Let's assume the old version 1.2.3
+//     let mut major = 1;
+//     let mut minor = 1;
+//     let mut patch = 1;
+
+//     // See if --set_ver was used to set the version manually
+//     let version = if let Some(ver) = cli.set_ver.as_deref() {
+//         ver.to_string()
+//     } else {
+//         // Increment the one requested (in a real program, we'd reset the lower numbers)
+//         let (maj, min, pat) = (cli.major, cli.minor, cli.patch);
+//         println!("{}.{}.{}", maj, min, pat);
+//         match (maj, min, pat) {
+//             (true, _, _) => major += 1,
+//             (_, true, _) => minor += 1,
+//             (_, _, true) => patch += 1,
+//             _ => unreachable!(),
+//         };
+//         format!("{}.{}.{}", major, minor, patch)
+//     };
+
+//     println!("Version: {}", version);
+
+//     // Check for usage of -c
+//     if let Some(config) = cli.config.as_deref() {
+//         let input = cli
+//             .input_file
+//             .as_deref()
+//             .unwrap_or_else(|| cli.spec_in.as_deref().unwrap());
+//         println!("Doing work using input {} and config {}", input, config);
+//     }
+// }

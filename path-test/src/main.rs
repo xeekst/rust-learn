@@ -34,7 +34,7 @@ fn main() {
     //     println!("{:?}", var);
     // }
 
-    let path_join = Path::new("\\\\?\\D:\\diasdfffr1").join("\\dir2\\sAForge.Imaging.dll");
+    let path_join = Path::new("\\\\?\\D:\\diasdfffr1").join("dir2\\sAForge.Imaging.dll");
 
     println!("path_join:{:?}", path_join);
 
@@ -87,13 +87,13 @@ fn test_log() {
 }
 
 fn test_bar() {
-    let count = 500;
+    let count = 5;
     let mut pb = ProgressBar::new(count);
     pb.format("╢▌▌░╟");
     for _ in 0..count {
         pb.inc();
         let n = thread_rng().gen_range(0..100);
-        thread::sleep(Duration::from_millis(n));
+        thread::sleep(Duration::from_millis(1));
     }
     pb.finish_println("done!");
 }
