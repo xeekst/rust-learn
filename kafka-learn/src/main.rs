@@ -20,33 +20,40 @@ use rdkafka::{
 async fn main() {
     setup_logger(true, Option::None);
     println!("Hello, world!");
-    // for i in 0..30000{
-    //     produce().await;
-    // }
-    
-    consume(
-        "10.176.120.136:9092",
-        "kafka-learn-consumer-group",
-        "test_topic_name",
-    )
-    .await;
+    let address = "10.176.60.94:21117";
+    produce(address, "device-command").await;
+
+    consume(address, "kafka-learn-consumer-group", "device-command").await;
+    // consume(
+    //     "10.176.120.136:9092",
+    //     "kafka-learn-consumer-group",
+    //     "device-command",
+    // )
+    // .await;
 }
 
-async fn produce() {
+async fn produce(server: &str, topic: &str) {
     let producer: &FutureProducer = &ClientConfig::new()
-        .set("bootstrap.servers", "10.176.120.136:9092")
+        .set("bootstrap.servers", server)
         .set("message.timeout.ms", "5000")
         .set_log_level(RDKafkaLogLevel::Debug)
         .create()
         .expect("Producer creation error");
 
+    let data = r#"{
+        "id":"1312136345623",
+        "order":1,
+        "subTaskId":"asdafa",
+        "deviceNumber": "20RH000YUS_PF1Y8TH3",
+         "commandType": "SubTaskStop",
+        "createTime": "2017-01-14 09:55:56",
+        "data": null
+    }"#;
+
     let futuressync = producer
         .send(
-            FutureRecord::to("test_topic_name")
-                .payload(&format!(
-                    "Producer Send Message {:?}",
-                    time::SystemTime::now()
-                ))
+            FutureRecord::to(topic)
+                .payload(data)
                 .key(&format!("Key {}", "test"))
                 .headers(OwnedHeaders::new().insert(Header {
                     key: "header_key",
@@ -66,11 +73,11 @@ async fn produce() {
 async fn consume(broker_server: &str, group_id: &str, topic: &str) {
     let consumer: StreamConsumer = ClientConfig::new()
         .set("group.id", group_id)
-        .set("client.id","test072")
+        .set("client.id", "test072")
         .set("bootstrap.servers", broker_server)
         .set("enable.partition.eof", "false")
         .set("session.timeout.ms", "6000")
-        .set("enable.auto.commit", "true")
+        .set("enable.auto.commit", "false")
         //.set("statistics.interval.ms", "30000")
         .set("auto.offset.reset", "earliest")
         .set_log_level(RDKafkaLogLevel::Debug)
@@ -100,7 +107,10 @@ async fn consume(broker_server: &str, group_id: &str, topic: &str) {
                 //         info!("  Header {:#?}: {:?}", header.key, header.value);
                 //     }
                 // }
-                //consumer.commit_message(&m, CommitMode::Async).unwrap();
+                consumer.commit_message(&m, CommitMode::Async).unwrap();
+                //consumer.seek(m.topic(), m.partition(), rdkafka::Offset::Offset(m.offset()-2), Duration::from_secs(15)).unwrap();
+
+                tokio::time::sleep(Duration::from_secs(3)).await;
             }
         };
     }
