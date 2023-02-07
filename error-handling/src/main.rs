@@ -43,6 +43,7 @@ fn last_char_of_first_line(text: &str) -> Option<char> {
 }
 
 fn main() {
+    
     let f = read_username_from_file();
     println!("{:?}",f);
     return;
