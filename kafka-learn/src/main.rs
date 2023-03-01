@@ -20,7 +20,7 @@ use rdkafka::{
 async fn main() {
     setup_logger(true, Option::None);
     println!("Hello, world!");
-    let address = "10.176.60.94:21117";
+    let address = "192.168.2.118:21117";
     produce(address, "device-command").await;
 
     consume(address, "kafka-learn-consumer-group", "device-command").await;
