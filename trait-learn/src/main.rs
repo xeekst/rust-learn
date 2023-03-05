@@ -14,6 +14,8 @@ struct Sheep {
     name: &'static str,
 }
 
+// 可以调用 trait 的方法
+//trait 中仅可以使用trait 定义的方法
 trait Animal {
     // 静态方法签名；`Self` 表示实现者类型（implementor type）。
     fn new(name: &'static str) -> Self;
@@ -27,7 +29,8 @@ trait Animal {
         println!("{} says {}", self.name(), self.noise());
     }
 }
-
+// 可以调用 impl struct 的方法
+//实现者可以使用它的 trait 方法。
 impl Sheep {
     fn is_naked(&self) -> bool {
         self.naked
@@ -45,7 +48,9 @@ impl Sheep {
     }
 }
 
-// 对 `Sheep` 实现 `Animal` trait。
+// 可以调用 trait 和 impl struct 的方法
+// trait 实现者可以使用它的 trait 方法 和 impl 的struct的方法
+// 这些fn中的 self 既是 trait的self 又是 struct 的self
 impl Animal for Sheep {
     // `Self` 是实现者类型：`Sheep`。
     fn new(name: &'static str) -> Sheep {
