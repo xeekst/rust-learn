@@ -1,0 +1,83 @@
+# data file for the Fltk User Interface Designer (fluid)
+version 1.0400
+header_name {.h}
+code_name {.cxx}
+class BasicView {open
+} {
+  Function {make_window()} {open
+  } {
+    Fl_Window {} {open
+      xywh {575 379 800 180} type Double color 54 visible
+    } {
+      Fl_Scroll scroll_view {open selected
+        xywh {0 20 800 160} color 54 align 0
+      } {
+        Fl_Group {} {open
+          xywh {0 20 786 30} box BORDER_BOX
+        } {
+          Fl_Box {} {
+            label Name
+            xywh {40 24 50 20}
+          }
+          Fl_Box {} {
+            label Type
+            xywh {120 25 50 20}
+          }
+          Fl_Box {} {
+            label {Start/Stop}
+            xywh {185 24 85 20}
+          }
+          Fl_Box {} {
+            label {Forward port}
+            xywh {295 24 50 20}
+          }
+          Fl_Box {} {
+            label {Dst host:port}
+            xywh {400 25 50 20}
+          }
+          Fl_Box {} {
+            label {user@@sshhost:port}
+            xywh {550 25 150 20}
+          }
+        }
+        Fl_Group tunnel_g1 {open
+          xywh {15 50 763 35} box BORDER_BOX color 54 align 0
+        } {
+          Fl_Button play_btn {
+            image {asset\\play.png} deimage {asset\\inactive_play.png} xywh {197 54 24 24} box FLAT_BOX color 255 align 16
+          }
+          Fl_Button stop_btn {
+            image {asset\\stop.png} deimage {asset\\inactive_stop.png} xywh {232 54 24 24} box FLAT_BOX color 255 align 16 deactivate
+          }
+          Fl_Input {} {
+            xywh {22 55 95 24} labeltype NO_LABEL
+          }
+          Fl_Input {} {
+            xywh {127 56 50 24} labeltype NO_LABEL
+          }
+          Fl_Input {} {
+            xywh {292 56 50 24} labeltype NO_LABEL
+          }
+          Fl_Input {} {
+            xywh {374 56 110 24} labeltype NO_LABEL
+          }
+          Fl_Input {} {
+            xywh {507 56 228 24} labeltype NO_LABEL
+          }
+        }
+      }
+      Fl_Menu_Bar menu {open
+        xywh {0 0 786 20}
+      } {
+        MenuItem add_btn {
+          label {+}
+          xywh {0 0 100 20}
+        }
+        MenuItem {} {
+          label about
+          xywh {0 0 100 20}
+        }
+      }
+    }
+  }
+}
