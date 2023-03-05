@@ -4,14 +4,110 @@ header_name {.h}
 code_name {.cxx}
 class UserInterface {open
 } {
-  Function {make_window()} {open
+  Function {make_window()} {open selected
   } {
     Fl_Window my_win {open
-      xywh {742 277 771 459} type Double visible
+      xywh {387 211 771 459} type Double box BORDER_BOX hide
     } {
+      Fl_Button {} {
+        image {D:/codes/rust-learn/gui-overview/fltk-app/play.png} xywh {275 110 75 64} down_box DOWN_FRAME
+      }
+      Fl_Progress {} {
+        label label
+        xywh {355 298 150 20}
+      }
+      Fl_Round_Button {} {
+        label button
+        xywh {657 216 62 15} down_box ROUND_DOWN_BOX
+      }
+      Fl_Scroll {} {open
+        xywh {175 95 100 65}
+      } {
+        Fl_Adjuster {} {
+          xywh {225 129 15 15}
+        }
+      }
+      Fl_Check_Button {} {
+        label button
+        xywh {665 185 62 15} down_box DOWN_BOX
+      }
+      Fl_Repeat_Button {} {
+        label button
+        xywh {573 144 77 20}
+      }
+      Fl_Light_Button {} {
+        label button
+        xywh {568 210 66 20}
+      }
+      Fl_Value_Output {} {
+        label {value:}
+        xywh {258 410 82 24}
+      }
+      Fl_Value_Input {} {
+        label {value:}
+        xywh {280 358 65 26}
+      }
+      Fl_Spinner {} {
+        label {spinner:}
+        xywh {165 375 40 24}
+      }
+      Fl_Roller {} {
+        xywh {618 379 112 36}
+      }
+      Fl_Dial {} {
+        xywh {450 342 80 76}
+      }
+      Fl_Counter {} {
+        label {counter:}
+        xywh {606 270 119 20}
+      }
+      Fl_Adjuster {} {
+        xywh {459 265 121 15}
+      }
+      Fl_Value_Slider {} {
+        label {slider:}
+        xywh {447 52 41 20} textsize 14
+      }
+      Fl_Value_Output {} {
+        label {value:}
+        xywh {595 68 55 24}
+      }
+      Fl_Scrollbar {} {
+        xywh {270 50 45 15}
+      }
+      Fl_Menu_Bar {} {open
+        xywh {0 0 771 20}
+      } {}
+      Fl_Input {} {
+        label {input:}
+        xywh {0 5 775 20}
+      }
+      Fl_Return_Button {} {
+        label button
+        xywh {301 229 64 20}
+      }
       Fl_Button btn1 {
-        label button selected
-        xywh {25 25 100 25} color 1
+        image {../play.png} xywh {85 65 65 70} color 7
+      }
+      Fl_Roller {} {
+        xywh {400 130 125 75}
+      }
+      Fl_Simple_Terminal {} {
+        xywh {120 195 201 115}
+      }
+      Fl_Slider {} {
+        label {slider:}
+        xywh {178 47 72 20}
+      }
+      Fl_Tile {} {open
+        xywh {565 26 91 29}
+      } {}
+      Fl_Wizard {} {open
+        xywh {30 290 80 45}
+      } {}
+      Fl_Output {} {
+        label {output:}
+        xywh {25 25 25 25}
       }
     }
   }
