@@ -33,24 +33,27 @@ fn main() -> io::Result<()> {
         "-o",
         "ServerAliveCountMax=3",
         "-L",
-        &format!("{}:{}", "5505", "1:5502"),
+        &format!("{}:{}", "5505", "127.0.0.1:5502"),
         "t@192.168.0.103",
     ];
-    let mut child = Command::new("ssh")
-        .args(&args)
-        //.arg(" -N -L 5505:127.0.0.1:5502 t@192.168.0.103")
+    let mut child = 
+        //Command::new("loop-print.exe")
+        Command::new("ssh.exe")
+        //.args(&args)
+        .arg(" -NTC -L 5505:127.0.0.1:5502 t@192.168.0.103")
         .stdin(Stdio::piped())
         .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
         .spawn()?;
 
-    let child_stdin = child.stdin.as_mut().unwrap();
-    child_stdin.write_all(b"yes\n")?;
+    // let child_stdin = child.stdin.as_mut().unwrap();
+    // child_stdin.write_all(b"yes\n")?;
     // child_stdin.flush().unwrap();
     // Close stdin to finish and avoid indefinite blocking
-    drop(child_stdin);
+    //drop(child_stdin);
 
     //let output = child.wait_with_output()?;
-
+    std::thread::sleep(Duration::from_secs(2));
     match child.stdout.take() {
         Some(child_out) => {
             thread::spawn(move || {
@@ -61,6 +64,17 @@ fn main() -> io::Result<()> {
             });
         }
         None => println!(" child.stdout is None"),
+    }
+    match child.stderr.take() {
+        Some(stderr) => {
+            thread::spawn(move || {
+                let reader = BufReader::new(stderr);
+                for line in reader.lines() {
+                    println!("stderr:{:?}", line);
+                }
+            });
+        }
+        None => println!(" child.stderr is None"),
     }
     std::thread::sleep(Duration::from_secs(10));
     println!("output = ");
