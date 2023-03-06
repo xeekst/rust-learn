@@ -3,6 +3,7 @@ mod ssh_tunnel;
 mod ssh_tunnel_view;
 
 use std::borrow::BorrowMut;
+use std::collections::HashMap;
 use std::io::{BufRead, BufReader, Stdin, Write};
 use std::os::windows::process::CommandExt;
 use std::path::PathBuf;
@@ -30,7 +31,7 @@ use fltk::tree::*;
 use fltk::valuator::*;
 use fltk::widget::*;
 use fltk::window::*;
-use ssh_tunnel::{SSHTunnel, RWLOCK_SSH_TUNNEL_MAP};
+use ssh_tunnel::{check_ssh_tunnels, SSHTunnel};
 use ssh_tunnel_view::SSHTunnelView;
 
 lazy_static::lazy_static! {
@@ -53,8 +54,6 @@ pub enum MsgType {
     StopTunnel,
 }
 
-
-
 fn main() {
     let app = app::App::default();
     let mut view = SSHTunnelView::new();
@@ -64,13 +63,21 @@ fn main() {
         .remove(&view.basic_view.tunnel_g1);
     view.add_ssh_tunnel_row();
 
+    let mut map: HashMap<String, SSHTunnel> = HashMap::new();
+    let mut last_time = chrono::Local::now();
+
     app::add_idle3(move |_| match RWLOCK_MSG_CHANNEL.read() {
         Err(err) => fltk::dialog::alert_default(&format!("RWLOCK_MSG_CHANNEL error:{:?}", err)),
         Ok(r) => {
             let ui_msg = r.1.recv();
             if let Some(m) = ui_msg {
                 println!("msg:{:?}", m);
-                handle_msg(&mut view, m);
+                handle_msg(&mut view, m, &mut map);
+            }
+
+            if (chrono::Local::now() - last_time) > chrono::Duration::seconds(10) {
+                last_time = chrono::Local::now();
+                check_ssh_tunnels(&mut map);
             }
         }
     });
@@ -78,7 +85,7 @@ fn main() {
     app.run().unwrap();
 }
 
-fn handle_msg(view: &mut SSHTunnelView, ui_msg: UiMessage) {
+fn handle_msg(view: &mut SSHTunnelView, ui_msg: UiMessage, map: &mut HashMap<String, SSHTunnel>) {
     match ui_msg.msg_type {
         MsgType::INFO => todo!(),
         MsgType::ERROR => todo!(),
@@ -93,38 +100,29 @@ fn handle_msg(view: &mut SSHTunnelView, ui_msg: UiMessage) {
                 forward_port,
                 dst_host_port,
                 ssh_user_server_port,
-                start_btn,
-                stop_btn,
-            ) = &view.tunnel_rows.get_mut(index).unwrap();
+                ref mut start_btn,
+                ref mut stop_btn,
+            ): &mut (Group, Input, Input, Input, Input, Input, Button, Button) =
+                view.tunnel_rows.get_mut(index).unwrap();
             let key = &ui_msg.msg;
 
-            // start_btn.deactivate();
-            // stop_btn.activate();
+            start_btn.deactivate();
+            stop_btn.deactivate();
 
-            loop {
-                match RWLOCK_SSH_TUNNEL_MAP.try_write() {
-                    Ok(mut map) => {
-                        if map.contains_key(key) {
-                            map.remove(key);
-                        }
-                        let mut ssh_tunnel = SSHTunnel::new(
-                            &ui_msg.msg,
-                            &name.value().clone(),
-                            &forward_port.value().clone(),
-                            &dst_host_port.value().clone(),
-                            &ssh_user_server_port.value().clone(),
-                        );
-                        ssh_tunnel.start_tunnel().unwrap();
-                        map.insert(key.to_string(), ssh_tunnel);
-                        //std::thread::sleep(Duration::from_secs(30));
-                        break;
-                    }
-                    Err(err) => {
-                        println!("can not write RWLOCK_SSH_TUNNEL_MAP, error:{:?}, will be sleep 10 sec.",err);
-                        std::thread::sleep(Duration::from_secs(10));
-                    }
-                }
+            if map.contains_key(key) {
+                map.remove(key);
             }
+            let mut ssh_tunnel = SSHTunnel::new(
+                &ui_msg.msg,
+                &name.value().clone(),
+                &forward_port.value().clone(),
+                &dst_host_port.value().clone(),
+                &ssh_user_server_port.value().clone(),
+            );
+            ssh_tunnel.start_tunnel().unwrap();
+            map.insert(key.to_string(), ssh_tunnel);
+
+            stop_btn.activate();
         }
         MsgType::StopTunnel => todo!(),
     }
