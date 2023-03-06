@@ -60,7 +60,7 @@ fn main() {
     view.init();
     view.basic_view
         .scroll_view
-        .remove(&view.basic_view.tunnel_g1);
+        .remove(&view.basic_view.tunnel_row);
     view.add_ssh_tunnel_row();
 
     let mut map: HashMap<String, SSHTunnel> = HashMap::new();
@@ -94,16 +94,34 @@ fn handle_msg(view: &mut SSHTunnelView, ui_msg: UiMessage, map: &mut HashMap<Str
             println!("recv message :{:?}", ui_msg);
             let index: usize = ui_msg.msg.parse().unwrap();
             let (
-                g,
-                name,
-                type_input,
-                forward_port,
-                dst_host_port,
-                ssh_user_server_port,
+                tunnel,
+                check_box,
+                index_txt,
+                name_iuput,
+                forward_type_choice,
                 ref mut start_btn,
                 ref mut stop_btn,
-            ): &mut (Group, Input, Input, Input, Input, Input, Button, Button) =
-                view.tunnel_rows.get_mut(index).unwrap();
+                forward_port_iuput,
+                dst_server_port_input,
+                ssh_username_iuput,
+                ssh_server_ip_iuput,
+                ssh_port_iuput,
+                pwd_input,
+            ): &mut (
+                Group,
+                CheckButton,
+                Frame,
+                Input,
+                MenuButton,
+                Button,
+                Button,
+                ValueInput,
+                Input,
+                Input,
+                Input,
+                ValueInput,
+                SecretInput,
+            ) = view.tunnel_rows.get_mut(index).unwrap();
             let key = &ui_msg.msg;
 
             start_btn.deactivate();
@@ -114,10 +132,13 @@ fn handle_msg(view: &mut SSHTunnelView, ui_msg: UiMessage, map: &mut HashMap<Str
             }
             let mut ssh_tunnel = SSHTunnel::new(
                 &ui_msg.msg,
-                &name.value().clone(),
-                &forward_port.value().clone(),
-                &dst_host_port.value().clone(),
-                &ssh_user_server_port.value().clone(),
+                &name_iuput.value().clone(),
+                &forward_port_iuput.value().to_string(),
+                &dst_server_port_input.value().clone(),
+                &ssh_username_iuput.value().clone(),
+                &ssh_server_ip_iuput.value().clone(),
+                &ssh_port_iuput.value().to_string(),
+                &pwd_input.value().clone(),
             );
             ssh_tunnel.start_tunnel().unwrap();
             map.insert(key.to_string(), ssh_tunnel);
