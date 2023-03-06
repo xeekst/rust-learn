@@ -17,7 +17,10 @@ pub struct SSHTunnel {
     name: String,
     forward_port: String,
     dst_host_port: String,
-    ssh_user_server_port: String,
+    ssh_username: String,
+    ssh_server: String,
+    ssh_port: String,
+    ssh_pwd: String,
     ssh: Option<Session>,
 }
 
@@ -27,22 +30,29 @@ impl SSHTunnel {
         name: &str,
         forward_port: &str,
         dst_host_port: &str,
-        ssh_user_server_port: &str,
+        ssh_username: &str,
+        ssh_server: &str,
+        ssh_port: &str,
+        ssh_pwd: &str,
     ) -> SSHTunnel {
         SSHTunnel {
             id: id.to_string(),
             name: name.to_string(),
             forward_port: forward_port.to_string(),
             dst_host_port: dst_host_port.to_string(),
-            ssh_user_server_port: ssh_user_server_port.to_string(),
+            ssh_username: ssh_username.to_string(),
+            ssh_server: ssh_server.to_string(),
+            ssh_port: ssh_port.to_string(),
+            ssh_pwd: ssh_pwd.to_string(),
             ssh: Option::None,
         }
     }
 
     pub fn start_tunnel(&mut self) -> Result<()> {
-        let command = format!(
-            "ssh -N -o ServerAliveInterval=60 -o ServerAliveCountMax=3 -L {0}:{1} {2}",
-            self.forward_port, self.dst_host_port, self.ssh_user_server_port
+        let command =
+            format!(
+            "ssh -N -o ServerAliveInterval=60 -o ServerAliveCountMax=3 -L {0}:{1} {2}@{3} -p {4}",
+            self.forward_port, self.dst_host_port, self.ssh_username,self.ssh_server,self.ssh_port
         );
 
         let mut ssh = spawn(&command).expect(&format!("Unknown command: {:?}", command));
@@ -53,7 +63,7 @@ impl SSHTunnel {
                     ssh.send_line("yes").unwrap();
                 },
                 _ = "password:" => {
-                    ssh.send_line("1").unwrap();
+                    ssh.send_line(&self.ssh_pwd).unwrap();
                     break;
                 },
                 default  => {

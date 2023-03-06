@@ -24,7 +24,22 @@ use crate::RWLOCK_MSG_CHANNEL;
 
 pub struct SSHTunnelView {
     pub basic_view: BasicView,
-    pub tunnel_rows: Vec<(Group, Input, Input, Input, Input, Input, Button, Button)>,
+
+    pub tunnel_rows: Vec<(
+        Group,
+        CheckButton,
+        Frame,
+        Input,
+        MenuButton,
+        Button,
+        Button,
+        ValueInput,
+        Input,
+        Input,
+        Input,
+        ValueInput,
+        SecretInput,
+    )>,
 }
 
 impl SSHTunnelView {
@@ -47,23 +62,59 @@ impl SSHTunnelView {
     }
 
     pub fn add_ssh_tunnel_row(&mut self) {
-        let (x, y) = if self.tunnel_rows.len() > 0 {
-            (
-                self.tunnel_rows.last().unwrap().0.x(),
-                self.tunnel_rows.last().unwrap().0.y(),
-            )
+        let y = if self.tunnel_rows.len() > 0 {
+            self.tunnel_rows.last().unwrap().2.y() + 40
         } else {
-            (15, 10)
+            self.basic_view.name_iuput.y()
         };
 
-        let mut tunnel = Group::new(x, y + 40, 763, 35, None);
+        let mut tunnel = Group::new(
+            self.basic_view.tunnel_row.x(),
+            if self.tunnel_rows.len() > 0 {
+                self.basic_view.tunnel_row.y() + 40
+            } else {
+                self.basic_view.tunnel_row.y()
+            },
+            self.basic_view.tunnel_row.w(),
+            self.basic_view.tunnel_row.h(),
+            None,
+        );
         tunnel.end();
-        tunnel.set_color(Color::by_index(53));
+        tunnel.set_color(self.basic_view.tunnel_row.color());
         tunnel.set_align(unsafe { std::mem::transmute(0) });
         tunnel.set_frame(FrameType::BorderBox);
         self.basic_view.scroll_view.add(&tunnel);
 
-        let mut start_btn = Button::new(197, y + 42, 24, 24, None);
+        let mut index_txt = Frame::new(
+            self.basic_view.index_txt.x(),
+            y + 1,
+            self.basic_view.index_txt.w(),
+            self.basic_view.index_txt.h(),
+            "0",
+        );
+        index_txt.set_label(&format!("{}", self.tunnel_rows.len()));
+        index_txt.set_color(Color::by_index(46));
+        index_txt.set_label_font(Font::by_index(1));
+        index_txt.set_label_color(Color::by_index(229));
+        tunnel.add(&index_txt);
+
+        let mut forward_type_choice = MenuButton::new(
+            self.basic_view.forward_type_choice.x(),
+            y,
+            self.basic_view.forward_type_choice.w(),
+            self.basic_view.forward_type_choice.h(),
+            "menu",
+        );
+        forward_type_choice.end();
+        tunnel.add(&forward_type_choice);
+
+        let mut start_btn = Button::new(
+            self.basic_view.start_btn.x(),
+            y - 2,
+            self.basic_view.start_btn.w(),
+            self.basic_view.start_btn.h(),
+            None,
+        );
         start_btn.set_image(Some(
             SharedImage::load("asset\\play.png")
                 .expect("Could not find image: ..\\asset\\play.png"),
@@ -77,7 +128,13 @@ impl SSHTunnelView {
         start_btn.set_align(unsafe { std::mem::transmute(16) });
         start_btn.set_tooltip("start this ssh tunnel.");
         tunnel.add(&start_btn);
-        let mut stop_btn = Button::new(232, y + 42, 24, 24, None);
+        let mut stop_btn = Button::new(
+            self.basic_view.stop_btn.x(),
+            y - 2,
+            self.basic_view.stop_btn.width(),
+            self.basic_view.stop_btn.h(),
+            None,
+        );
         stop_btn.set_image(Some(
             SharedImage::load("asset\\stop.png")
                 .expect("Could not find image: ..\\asset\\stop.png"),
@@ -92,21 +149,88 @@ impl SSHTunnelView {
         stop_btn.set_align(unsafe { std::mem::transmute(16) });
         stop_btn.deactivate();
         tunnel.add(&stop_btn);
-        let mut name_input = Input::new(22, y + 44, 95, 24, None);
-        name_input.set_label_type(LabelType::None);
-        tunnel.add(&name_input);
-        let mut type_input = Input::new(127, y + 44, 50, 24, None);
-        type_input.set_label_type(LabelType::None);
-        tunnel.add(&type_input);
-        let mut forward_port = Input::new(292, y + 44, 50, 24, None);
-        forward_port.set_label_type(LabelType::None);
-        tunnel.add(&forward_port);
-        let mut dst_host_port = Input::new(374, y + 44, 110, 24, None);
-        dst_host_port.set_label_type(LabelType::None);
-        tunnel.add(&dst_host_port);
-        let mut ssh_server_input = Input::new(507, y + 44, 228, 24, None);
-        ssh_server_input.set_label_type(LabelType::None);
-        tunnel.add(&ssh_server_input);
+
+        let mut name_iuput = Input::new(
+            self.basic_view.name_iuput.x(),
+            y,
+            self.basic_view.name_iuput.w(),
+            self.basic_view.name_iuput.h(),
+            None,
+        );
+        name_iuput.set_label_type(LabelType::None);
+        tunnel.add(&name_iuput);
+        let mut forward_port_iuput = ValueInput::new(
+            self.basic_view.forward_port_iuput.x(),
+            y,
+            self.basic_view.forward_port_iuput.w(),
+            self.basic_view.forward_port_iuput.h(),
+            None,
+        );
+        forward_port_iuput.set_label_type(LabelType::None);
+        tunnel.add(&forward_port_iuput);
+        let mut dst_server_port_input = Input::new(
+            self.basic_view.dst_server_port_input.x(),
+            y,
+            self.basic_view.dst_server_port_input.w(),
+            self.basic_view.dst_server_port_input.h(),
+            None,
+        );
+        dst_server_port_input.set_label_type(LabelType::None);
+        tunnel.add(&dst_server_port_input);
+        let mut ssh_username_iuput = Input::new(
+            self.basic_view.ssh_username_iuput.x(),
+            y,
+            self.basic_view.ssh_username_iuput.w(),
+            self.basic_view.ssh_username_iuput.h(),
+            None,
+        );
+        ssh_username_iuput.set_label_type(LabelType::None);
+        tunnel.add(&ssh_username_iuput);
+        let mut ssh_server_ip_iuput = Input::new(
+            self.basic_view.ssh_server_ip_iuput.x(),
+            y,
+            self.basic_view.ssh_server_ip_iuput.w(),
+            self.basic_view.ssh_server_ip_iuput.h(),
+            None,
+        );
+        ssh_server_ip_iuput.set_label_type(LabelType::None);
+        tunnel.add(&ssh_server_ip_iuput);
+        let mut ssh_port_iuput = ValueInput::new(
+            self.basic_view.ssh_port_iuput.x(),
+            y,
+            self.basic_view.ssh_port_iuput.w(),
+            self.basic_view.ssh_port_iuput.h(),
+            None,
+        );
+        ssh_port_iuput.set_label_type(LabelType::None);
+        tunnel.add(&ssh_port_iuput);
+        let mut pwd_input = SecretInput::new(
+            self.basic_view.pwd_input.x(),
+            y,
+            self.basic_view.pwd_input.w(),
+            self.basic_view.pwd_input.h(),
+            None,
+        );
+        pwd_input.set_label_type(LabelType::None);
+        tunnel.add(&pwd_input);
+        let mut fl2rust_widget_10 = Frame::new(600, y, 20, 20, "@@");
+        tunnel.add(&fl2rust_widget_10);
+        let mut fl2rust_widget_11 = Frame::new(705, y, 10, 20, ":");
+        fl2rust_widget_11.set_label_font(Font::by_index(1));
+        tunnel.add(&fl2rust_widget_11);
+        let mut check_box = CheckButton::new(
+            self.basic_view.check_box.x(),
+            y + 4,
+            self.basic_view.check_box.w(),
+            self.basic_view.check_box.h(),
+            None,
+        );
+        check_box.set_down_frame(FrameType::DownBox);
+        check_box.set_color(Color::by_index(229));
+        check_box.set_selection_color(Color::by_index(228));
+        check_box.set_label_type(LabelType::None);
+        check_box.set_label_color(Color::by_index(229));
+        tunnel.add(&check_box);
 
         let start_btn_index = (self.tunnel_rows.len()).to_string();
 
@@ -127,13 +251,18 @@ impl SSHTunnelView {
 
         self.tunnel_rows.push((
             tunnel,
-            name_input,
-            type_input,
-            forward_port,
-            dst_host_port,
-            ssh_server_input,
+            check_box,
+            index_txt,
+            name_iuput,
+            forward_type_choice,
             start_btn,
             stop_btn,
+            forward_port_iuput,
+            dst_server_port_input,
+            ssh_username_iuput,
+            ssh_server_ip_iuput,
+            ssh_port_iuput,
+            pwd_input,
         ));
     }
 
