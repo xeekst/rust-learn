@@ -22,6 +22,7 @@ use fltk::window::*;
 
 #[derive(Debug, Clone)]
 pub struct BasicView {
+    pub main_window: Window,
     pub scroll_view: Scroll,
     pub tunnel_row: Group,
     pub index_txt: Frame,
@@ -42,36 +43,37 @@ pub struct BasicView {
 
 impl BasicView {
     pub fn make_window() -> Self {
-	let mut fl2rust_widget_0 = Window::new(537, 479, 960, 200, None);
-	fl2rust_widget_0.end();
-	fl2rust_widget_0.set_color(Color::by_index(54));
-	fl2rust_widget_0.show();
+	let mut main_window = Window::new(537, 479, 960, 200, None);
+	main_window.end();
+	main_window.set_color(Color::by_index(54));
+	main_window.size_range(960, 200, 960, 800);
+	main_window.show();
 	let mut scroll_view = Scroll::new(0, 20, 960, 180, None);
 	scroll_view.end();
 	scroll_view.set_color(Color::by_index(54));
 	scroll_view.set_label_font(Font::by_index(1));
 	scroll_view.set_align(unsafe {std::mem::transmute(0)});
-	fl2rust_widget_0.add(&scroll_view);
-	let mut fl2rust_widget_1 = Group::new(0, 20, 946, 30, None);
-	fl2rust_widget_1.end();
-	fl2rust_widget_1.set_frame(FrameType::BorderBox);
-	scroll_view.add(&fl2rust_widget_1);
-	let mut fl2rust_widget_2 = Frame::new(115, 24, 45, 20, "Name");
-	fl2rust_widget_1.add(&fl2rust_widget_2);
-	let mut fl2rust_widget_3 = Frame::new(200, 25, 40, 20, "Type");
-	fl2rust_widget_1.add(&fl2rust_widget_3);
-	let mut fl2rust_widget_4 = Frame::new(250, 25, 70, 20, "Start/Stop");
-	fl2rust_widget_1.add(&fl2rust_widget_4);
-	let mut fl2rust_widget_5 = Frame::new(320, 24, 80, 20, "Forward port");
-	fl2rust_widget_1.add(&fl2rust_widget_5);
-	let mut fl2rust_widget_6 = Frame::new(415, 25, 80, 20, "Dst host:port");
-	fl2rust_widget_1.add(&fl2rust_widget_6);
-	let mut fl2rust_widget_7 = Frame::new(810, 25, 65, 20, "password");
-	fl2rust_widget_1.add(&fl2rust_widget_7);
-	let mut fl2rust_widget_8 = Frame::new(528, 25, 260, 20, "username @@ssh_server_ip : ssh_port");
-	fl2rust_widget_1.add(&fl2rust_widget_8);
-	let mut fl2rust_widget_9 = Frame::new(47, 25, 30, 20, "No.");
-	fl2rust_widget_1.add(&fl2rust_widget_9);
+	main_window.add(&scroll_view);
+	let mut fl2rust_widget_0 = Group::new(0, 20, 944, 30, None);
+	fl2rust_widget_0.end();
+	fl2rust_widget_0.set_frame(FrameType::BorderBox);
+	scroll_view.add(&fl2rust_widget_0);
+	let mut fl2rust_widget_1 = Frame::new(115, 24, 45, 20, "Name");
+	fl2rust_widget_0.add(&fl2rust_widget_1);
+	let mut fl2rust_widget_2 = Frame::new(200, 25, 40, 20, "Type");
+	fl2rust_widget_0.add(&fl2rust_widget_2);
+	let mut fl2rust_widget_3 = Frame::new(250, 25, 70, 20, "Start/Stop");
+	fl2rust_widget_0.add(&fl2rust_widget_3);
+	let mut fl2rust_widget_4 = Frame::new(320, 24, 80, 20, "Forward port");
+	fl2rust_widget_0.add(&fl2rust_widget_4);
+	let mut fl2rust_widget_5 = Frame::new(415, 25, 80, 20, "Dst host:port");
+	fl2rust_widget_0.add(&fl2rust_widget_5);
+	let mut fl2rust_widget_6 = Frame::new(810, 25, 65, 20, "password");
+	fl2rust_widget_0.add(&fl2rust_widget_6);
+	let mut fl2rust_widget_7 = Frame::new(528, 25, 260, 20, "username @@ssh_server_ip : ssh_port");
+	fl2rust_widget_0.add(&fl2rust_widget_7);
+	let mut fl2rust_widget_8 = Frame::new(47, 25, 30, 20, "No.");
+	fl2rust_widget_0.add(&fl2rust_widget_8);
 	let mut tunnel_row = Group::new(15, 54, 913, 36, None);
 	tunnel_row.end();
 	tunnel_row.set_frame(FrameType::BorderBox);
@@ -120,11 +122,11 @@ impl BasicView {
 	let mut pwd_input = SecretInput::new(805, 61, 85, 24, None);
 	pwd_input.set_label_type(LabelType::None);
 	tunnel_row.add(&pwd_input);
-	let mut fl2rust_widget_10 = Frame::new(600, 62, 20, 20, "@@");
+	let mut fl2rust_widget_9 = Frame::new(600, 62, 20, 20, "@@");
+	tunnel_row.add(&fl2rust_widget_9);
+	let mut fl2rust_widget_10 = Frame::new(705, 62, 10, 20, ":");
+	fl2rust_widget_10.set_label_font(Font::by_index(1));
 	tunnel_row.add(&fl2rust_widget_10);
-	let mut fl2rust_widget_11 = Frame::new(705, 62, 10, 20, ":");
-	fl2rust_widget_11.set_label_font(Font::by_index(1));
-	tunnel_row.add(&fl2rust_widget_11);
 	let mut check_box = CheckButton::new(20, 65, 15, 15, "button");
 	check_box.set_down_frame(FrameType::DownBox);
 	check_box.set_color(Color::by_index(229));
@@ -134,10 +136,10 @@ impl BasicView {
 	tunnel_row.add(&check_box);
 	let mut menu = MenuBar::new(0, 0, 960, 20, None);
 	menu.end();
-	fl2rust_widget_0.add(&menu);
+	main_window.add(&menu);
 	menu.add("+", Shortcut::None, MenuFlag::Normal, |_| {});
 	menu.add("about", Shortcut::None, MenuFlag::Normal, |_| {});
-	Self { scroll_view, tunnel_row, index_txt, forward_type_choice, start_btn, stop_btn, name_iuput, forward_port_iuput, dst_server_port_input, ssh_username_iuput, ssh_server_ip_iuput, ssh_port_iuput, pwd_input, check_box, menu, }
+	Self { main_window, scroll_view, tunnel_row, index_txt, forward_type_choice, start_btn, stop_btn, name_iuput, forward_port_iuput, dst_server_port_input, ssh_username_iuput, ssh_server_ip_iuput, ssh_port_iuput, pwd_input, check_box, menu, }
     }
 }
 

@@ -67,7 +67,9 @@ impl SSHTunnel {
                     break;
                 },
                 default  => {
-                    println!("unknown ssh output, will be exit.");
+                    let mut buf = String::from("");
+                    ssh.read_line(&mut buf).unwrap();
+                    println!("unknown ssh output:{:#?}, will be exit.", buf);
                     break;
                 },
             ) {

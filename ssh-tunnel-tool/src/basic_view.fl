@@ -6,14 +6,14 @@ class BasicView {open
 } {
   Function {make_window()} {open
   } {
-    Fl_Window {} {open
-      xywh {537 479 960 200} type Double color 54 visible
+    Fl_Window main_window {open
+      xywh {537 479 960 200} type Double color 54 size_range {960 200 960 800} visible
     } {
       Fl_Scroll scroll_view {open
         xywh {0 20 960 180} color 54 labelfont 1 align 0
       } {
-        Fl_Group {} {open
-          xywh {0 20 946 30} box BORDER_BOX
+        Fl_Group {} {open selected
+          xywh {0 20 944 30} box BORDER_BOX
         } {
           Fl_Box {} {
             label Name
@@ -32,7 +32,7 @@ class BasicView {open
             xywh {320 24 80 20}
           }
           Fl_Box {} {
-            label {Dst host:port} selected
+            label {Dst host:port}
             xywh {415 25 80 20}
           }
           Fl_Box {} {

@@ -4,6 +4,7 @@ use fltk::dialog::*;
 use fltk::enums::*;
 use fltk::frame::*;
 use fltk::group::*;
+use fltk::image;
 use fltk::image::*;
 use fltk::input::*;
 use fltk::menu::*;
@@ -52,6 +53,16 @@ impl SSHTunnelView {
     }
 
     pub fn init(&mut self) {
+        self.basic_view
+            .main_window
+            .resize_callback(|_, x, y, w, h| {
+                Self::send(UiMessage {
+                    msg_type: MsgType::ResizeMainWindow,
+                    msg: format!("{x}|{y}|{w}|{h}"),
+                })
+            });
+        let image = image::PngImage::load("asset/network.png").unwrap();
+        self.basic_view.main_window.set_icon(Some(image));
         let mut add_btn = self.basic_view.menu.find_item("+").unwrap();
         add_btn.set_callback(|_| {
             Self::send(UiMessage {
@@ -59,11 +70,12 @@ impl SSHTunnelView {
                 msg: String::from(""),
             })
         });
+        
     }
 
     pub fn add_ssh_tunnel_row(&mut self) {
         let y = if self.tunnel_rows.len() > 0 {
-            self.tunnel_rows.last().unwrap().2.y() + 40
+            self.tunnel_rows.last().unwrap().2.y() +  45
         } else {
             self.basic_view.name_iuput.y()
         };
@@ -71,7 +83,7 @@ impl SSHTunnelView {
         let mut tunnel = Group::new(
             self.basic_view.tunnel_row.x(),
             if self.tunnel_rows.len() > 0 {
-                self.basic_view.tunnel_row.y() + 40
+                self.tunnel_rows.last().unwrap().0.y() + 45
             } else {
                 self.basic_view.tunnel_row.y()
             },
@@ -80,6 +92,11 @@ impl SSHTunnelView {
             None,
         );
         tunnel.end();
+        // let border = color = if self.tunnel_rows.len() % 2 == 0 {
+        //     self.basic_view.tunnel_row.color()
+        // } else {
+        //     Color::Blue
+        // };
         tunnel.set_color(self.basic_view.tunnel_row.color());
         tunnel.set_align(unsafe { std::mem::transmute(0) });
         tunnel.set_frame(FrameType::BorderBox);
@@ -87,7 +104,7 @@ impl SSHTunnelView {
 
         let mut index_txt = Frame::new(
             self.basic_view.index_txt.x(),
-            y + 1,
+            y,
             self.basic_view.index_txt.w(),
             self.basic_view.index_txt.h(),
             "0",

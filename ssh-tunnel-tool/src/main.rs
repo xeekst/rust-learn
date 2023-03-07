@@ -50,6 +50,7 @@ pub enum MsgType {
     ERROR,
 
     AddTunnelRow,
+    ResizeMainWindow,
     StartTunnel,
     StopTunnel,
 }
@@ -146,6 +147,18 @@ fn handle_msg(view: &mut SSHTunnelView, ui_msg: UiMessage, map: &mut HashMap<Str
             stop_btn.activate();
         }
         MsgType::StopTunnel => todo!(),
+        MsgType::ResizeMainWindow => {
+            let arr = ui_msg.msg.split("|").collect::<Vec<&str>>();
+            let w = arr.get(2).unwrap().parse::<i32>().unwrap();
+            let h = arr.get(3).unwrap().parse::<i32>().unwrap();
+
+            view.basic_view.scroll_view.resize(
+                view.basic_view.scroll_view.x(),
+                view.basic_view.scroll_view.y(),
+                w,
+                h - 20,
+            )
+        }
     }
 
     view.basic_view.scroll_view.redraw();
