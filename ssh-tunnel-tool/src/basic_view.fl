@@ -7,7 +7,7 @@ class BasicView {open
   Function {make_window()} {open
   } {
     Fl_Window main_window {open
-      xywh {564 473 960 200} type Double color 54 size_range {960 200 960 800} visible
+      xywh {375 350 960 200} type Double color 54 size_range {960 200 960 800} visible
     } {
       Fl_Scroll scroll_view {open
         xywh {0 20 960 180} color 54 labelfont 1 align 0
@@ -32,7 +32,7 @@ class BasicView {open
             xywh {350 24 80 20}
           }
           Fl_Box {} {
-            label {Dst host:port}
+            label {Dst host:port} selected
             xywh {445 25 80 20}
           }
           Fl_Box {} {
@@ -51,7 +51,7 @@ class BasicView {open
         Fl_Group tunnel_row {open
           xywh {15 54 913 36} box BORDER_BOX color 54 align 0
         } {
-          Fl_Choice forward_type_choice {open selected
+          Fl_Choice forward_type_choice {open
             xywh {200 60 75 24} down_box BORDER_BOX
           } {}
           Fl_Box index_txt {
@@ -69,7 +69,7 @@ class BasicView {open
           }
           Fl_Input forward_port_iuput {
             xywh {355 60 70 24} labeltype NO_LABEL
-            class ValueInput
+            class IntInput
           }
           Fl_Input dst_server_port_input {
             xywh {430 60 110 24} labeltype NO_LABEL
@@ -82,17 +82,17 @@ class BasicView {open
           }
           Fl_Input ssh_port_iuput {
             xywh {745 60 80 24} labeltype NO_LABEL
-            class ValueInput
+            class IntInput
           }
           Fl_Input pwd_input {
             xywh {835 60 85 24} labeltype NO_LABEL
             class SecretInput
           }
-          Fl_Box {} {
+          Fl_Box at_box {
             label {@@}
             xywh {630 62 20 20}
           }
-          Fl_Box {} {
+          Fl_Box box2 {
             label {:}
             xywh {735 62 10 20} labelfont 1
           }

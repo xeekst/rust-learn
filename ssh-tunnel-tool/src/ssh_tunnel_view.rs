@@ -21,10 +21,11 @@ use fltk::widget::*;
 use fltk::window::*;
 
 use crate::basic_view::BasicView;
+use crate::ssh_tunnel::SSHTunnel;
 use crate::MsgType;
 use crate::UiMessage;
 use crate::RWLOCK_MSG_CHANNEL;
-use crate::ssh_tunnel::SSHTunnel;
+use anyhow::{anyhow, Result};
 
 pub struct SSHTunnelView {
     pub basic_view: BasicView,
@@ -37,11 +38,11 @@ pub struct SSHTunnelView {
         Choice,
         Button,
         Button,
-        ValueInput,
+        IntInput,
         Input,
         Input,
         Input,
-        ValueInput,
+        IntInput,
         SecretInput,
     )>,
 }
@@ -73,12 +74,11 @@ impl SSHTunnelView {
                 msg: String::from(""),
             })
         });
-        
     }
 
     pub fn add_ssh_tunnel_row(&mut self) {
         let y = if self.tunnel_rows.len() > 0 {
-            self.tunnel_rows.last().unwrap().2.y() +  45
+            self.tunnel_rows.last().unwrap().2.y() + 45
         } else {
             self.basic_view.name_iuput.y()
         };
@@ -177,7 +177,7 @@ impl SSHTunnelView {
         );
         name_iuput.set_label_type(LabelType::None);
         tunnel.add(&name_iuput);
-        let mut forward_port_iuput = ValueInput::new(
+        let mut forward_port_iuput = IntInput::new(
             self.basic_view.forward_port_iuput.x(),
             y,
             self.basic_view.forward_port_iuput.w(),
@@ -213,7 +213,7 @@ impl SSHTunnelView {
         );
         ssh_server_ip_iuput.set_label_type(LabelType::None);
         tunnel.add(&ssh_server_ip_iuput);
-        let mut ssh_port_iuput = ValueInput::new(
+        let mut ssh_port_iuput = IntInput::new(
             self.basic_view.ssh_port_iuput.x(),
             y,
             self.basic_view.ssh_port_iuput.w(),
@@ -221,6 +221,7 @@ impl SSHTunnelView {
             None,
         );
         ssh_port_iuput.set_label_type(LabelType::None);
+        ssh_port_iuput.set_value("22");
         tunnel.add(&ssh_port_iuput);
         let mut pwd_input = SecretInput::new(
             self.basic_view.pwd_input.x(),
@@ -231,9 +232,9 @@ impl SSHTunnelView {
         );
         pwd_input.set_label_type(LabelType::None);
         tunnel.add(&pwd_input);
-        let mut fl2rust_widget_10 = Frame::new(600, y, 20, 20, "@@");
+        let mut fl2rust_widget_10 = Frame::new(self.basic_view.at_box.x(), y, 20, 20, "@@");
         tunnel.add(&fl2rust_widget_10);
-        let mut fl2rust_widget_11 = Frame::new(705, y, 10, 20, ":");
+        let mut fl2rust_widget_11 = Frame::new(self.basic_view.box2.x(), y, 10, 20, ":");
         fl2rust_widget_11.set_label_font(Font::by_index(1));
         tunnel.add(&fl2rust_widget_11);
         let mut check_box = CheckButton::new(
@@ -284,6 +285,77 @@ impl SSHTunnelView {
         ));
     }
 
+    pub fn try_start_tunnel_params(
+        &self,
+        index: usize,
+    ) -> Result<(String, String, i32, String, String, String, i32, String)> {
+        let (
+            tunnel,
+            check_box,
+            index_txt,
+            name_iuput,
+            forward_type_choice,
+            start_btn,
+            stop_btn,
+            forward_port_iuput,
+            dst_server_port_input,
+            ssh_username_iuput,
+            ssh_server_ip_iuput,
+            ssh_port_iuput,
+            pwd_input,
+        ): &(
+            Group,
+            CheckButton,
+            Frame,
+            Input,
+            Choice,
+            Button,
+            Button,
+            IntInput,
+            Input,
+            Input,
+            Input,
+            IntInput,
+            SecretInput,
+        ) = &self.tunnel_rows.get(index).unwrap();
+        let name = name_iuput.value();
+        let forwart_type = match forward_type_choice.choice() {
+            Some(c) => c,
+            None => return Err(anyhow!("[Type] must be select.")),
+        };
+        let forward_port = forward_port_iuput.value().parse::<i32>()?;
+        let dst_server_port = dst_server_port_input.value();
+        if dst_server_port.is_empty() {
+            return Err(anyhow!("[Dst host:port] can not be empty."));
+        }
+
+        let ssh_username = ssh_username_iuput.value();
+        if ssh_username.is_empty() {
+            return Err(anyhow!("[username] can not be empty."));
+        }
+
+        let ssh_server_ip = ssh_server_ip_iuput.value();
+        if ssh_server_ip.is_empty() {
+            return Err(anyhow!("[ssh server ip] can not be empty."));
+        }
+        let ssh_port = ssh_port_iuput.value().parse::<i32>()?;
+        let pwd = pwd_input.value();
+        if pwd.is_empty() {
+            return Err(anyhow!("[password] can not be empty."));
+        }
+
+        Ok((
+            name,
+            forwart_type,
+            forward_port,
+            dst_server_port,
+            ssh_username,
+            ssh_server_ip,
+            ssh_port,
+            pwd,
+        ))
+    }
+
     fn send(m: UiMessage) {
         match &RWLOCK_MSG_CHANNEL.read() {
             Ok(channel) => {
@@ -295,7 +367,11 @@ impl SSHTunnelView {
     }
 }
 
-pub fn handle_view_msg(view: &mut SSHTunnelView, ui_msg: UiMessage, map: &mut HashMap<String, SSHTunnel>) {
+pub fn handle_view_msg(
+    view: &mut SSHTunnelView,
+    ui_msg: UiMessage,
+    map: &mut HashMap<String, SSHTunnel>,
+) {
     match ui_msg.msg_type {
         MsgType::INFO => todo!(),
         MsgType::ERROR => todo!(),
@@ -303,14 +379,32 @@ pub fn handle_view_msg(view: &mut SSHTunnelView, ui_msg: UiMessage, map: &mut Ha
         MsgType::StartTunnel => {
             println!("recv message :{:?}", ui_msg);
             let index: usize = ui_msg.msg.parse().unwrap();
+
+            let (
+                name,
+                forwart_type,
+                forward_port,
+                dst_server_port,
+                ssh_username,
+                ssh_server_ip,
+                ssh_port,
+                pwd,
+            ) = match view.try_start_tunnel_params(index) {
+                Ok(t) => t,
+                Err(err) => {
+                    fltk::dialog::alert_default(&format!("Oops! An error occurred:{:?}", err));
+                    return;
+                }
+            };
+
             let (
                 tunnel,
                 check_box,
                 index_txt,
                 name_iuput,
                 forward_type_choice,
-                ref mut start_btn,
-                ref mut stop_btn,
+                start_btn,
+                stop_btn,
                 forward_port_iuput,
                 dst_server_port_input,
                 ssh_username_iuput,
@@ -325,11 +419,11 @@ pub fn handle_view_msg(view: &mut SSHTunnelView, ui_msg: UiMessage, map: &mut Ha
                 Choice,
                 Button,
                 Button,
-                ValueInput,
+                IntInput,
                 Input,
                 Input,
                 Input,
-                ValueInput,
+                IntInput,
                 SecretInput,
             ) = view.tunnel_rows.get_mut(index).unwrap();
             let key = &ui_msg.msg;
@@ -340,20 +434,29 @@ pub fn handle_view_msg(view: &mut SSHTunnelView, ui_msg: UiMessage, map: &mut Ha
             if map.contains_key(key) {
                 map.remove(key);
             }
+
             let mut ssh_tunnel = SSHTunnel::new(
                 &ui_msg.msg,
-                &name_iuput.value().clone(),
-                &forward_port_iuput.value().to_string(),
-                &dst_server_port_input.value().clone(),
-                &ssh_username_iuput.value().clone(),
-                &ssh_server_ip_iuput.value().clone(),
-                &ssh_port_iuput.value().to_string(),
-                &pwd_input.value().clone(),
+                &name,
+                &forwart_type,
+                forward_port,
+                &dst_server_port,
+                &ssh_username,
+                &ssh_server_ip,
+                ssh_port,
+                &pwd,
             );
             ssh_tunnel.start_tunnel().unwrap();
             map.insert(key.to_string(), ssh_tunnel);
 
             stop_btn.activate();
+            forward_type_choice.deactivate();
+            forward_port_iuput.deactivate();
+            dst_server_port_input.deactivate();
+            ssh_username_iuput.deactivate();
+            ssh_server_ip_iuput.deactivate();
+            ssh_port_iuput.deactivate();
+            pwd_input.deactivate();
         }
         MsgType::StopTunnel => todo!(),
         MsgType::ResizeMainWindow => {

@@ -30,12 +30,14 @@ pub struct BasicView {
     pub start_btn: Button,
     pub stop_btn: Button,
     pub name_iuput: Input,
-    pub forward_port_iuput: ValueInput,
+    pub forward_port_iuput: IntInput,
     pub dst_server_port_input: Input,
     pub ssh_username_iuput: Input,
     pub ssh_server_ip_iuput: Input,
-    pub ssh_port_iuput: ValueInput,
+    pub ssh_port_iuput: IntInput,
     pub pwd_input: SecretInput,
+    pub at_box: Frame,
+    pub box2: Frame,
     pub check_box: CheckButton,
     pub menu: MenuBar,
 }
@@ -43,7 +45,7 @@ pub struct BasicView {
 
 impl BasicView {
     pub fn make_window() -> Self {
-	let mut main_window = Window::new(564, 473, 960, 200, None);
+	let mut main_window = Window::new(375, 350, 960, 200, None);
 	main_window.end();
 	main_window.set_color(Color::by_index(54));
 	main_window.size_range(960, 200, 960, 800);
@@ -105,7 +107,7 @@ impl BasicView {
 	let mut name_iuput = Input::new(90, 60, 95, 24, None);
 	name_iuput.set_label_type(LabelType::None);
 	tunnel_row.add(&name_iuput);
-	let mut forward_port_iuput = ValueInput::new(355, 60, 70, 24, None);
+	let mut forward_port_iuput = IntInput::new(355, 60, 70, 24, None);
 	forward_port_iuput.set_label_type(LabelType::None);
 	tunnel_row.add(&forward_port_iuput);
 	let mut dst_server_port_input = Input::new(430, 60, 110, 24, None);
@@ -117,17 +119,17 @@ impl BasicView {
 	let mut ssh_server_ip_iuput = Input::new(650, 60, 85, 24, None);
 	ssh_server_ip_iuput.set_label_type(LabelType::None);
 	tunnel_row.add(&ssh_server_ip_iuput);
-	let mut ssh_port_iuput = ValueInput::new(745, 60, 80, 24, None);
+	let mut ssh_port_iuput = IntInput::new(745, 60, 80, 24, None);
 	ssh_port_iuput.set_label_type(LabelType::None);
 	tunnel_row.add(&ssh_port_iuput);
 	let mut pwd_input = SecretInput::new(835, 60, 85, 24, None);
 	pwd_input.set_label_type(LabelType::None);
 	tunnel_row.add(&pwd_input);
-	let mut fl2rust_widget_9 = Frame::new(630, 62, 20, 20, "@@");
-	tunnel_row.add(&fl2rust_widget_9);
-	let mut fl2rust_widget_10 = Frame::new(735, 62, 10, 20, ":");
-	fl2rust_widget_10.set_label_font(Font::by_index(1));
-	tunnel_row.add(&fl2rust_widget_10);
+	let mut at_box = Frame::new(630, 62, 20, 20, "@@");
+	tunnel_row.add(&at_box);
+	let mut box2 = Frame::new(735, 62, 10, 20, ":");
+	box2.set_label_font(Font::by_index(1));
+	tunnel_row.add(&box2);
 	let mut check_box = CheckButton::new(20, 65, 15, 15, "button");
 	check_box.set_down_frame(FrameType::DownBox);
 	check_box.set_color(Color::by_index(229));
@@ -140,7 +142,7 @@ impl BasicView {
 	main_window.add(&menu);
 	menu.add("+", Shortcut::None, MenuFlag::Normal, |_| {});
 	menu.add("about", Shortcut::None, MenuFlag::Normal, |_| {});
-	Self { main_window, scroll_view, tunnel_row, forward_type_choice, index_txt, start_btn, stop_btn, name_iuput, forward_port_iuput, dst_server_port_input, ssh_username_iuput, ssh_server_ip_iuput, ssh_port_iuput, pwd_input, check_box, menu, }
+	Self { main_window, scroll_view, tunnel_row, forward_type_choice, index_txt, start_btn, stop_btn, name_iuput, forward_port_iuput, dst_server_port_input, ssh_username_iuput, ssh_server_ip_iuput, ssh_port_iuput, pwd_input, at_box, box2, check_box, menu, }
     }
 }
 
