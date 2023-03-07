@@ -7,12 +7,12 @@ class BasicView {open
   Function {make_window()} {open
   } {
     Fl_Window main_window {open
-      xywh {537 479 960 200} type Double color 54 size_range {960 200 960 800} visible
+      xywh {564 473 960 200} type Double color 54 size_range {960 200 960 800} visible
     } {
       Fl_Scroll scroll_view {open
         xywh {0 20 960 180} color 54 labelfont 1 align 0
       } {
-        Fl_Group {} {open selected
+        Fl_Group {} {open
           xywh {0 20 944 30} box BORDER_BOX
         } {
           Fl_Box {} {
@@ -21,27 +21,27 @@ class BasicView {open
           }
           Fl_Box {} {
             label Type
-            xywh {200 25 40 20}
+            xywh {215 25 40 20}
           }
           Fl_Box {} {
             label {Start/Stop}
-            xywh {250 25 70 20}
+            xywh {280 25 70 20}
           }
           Fl_Box {} {
             label {Forward port}
-            xywh {320 24 80 20}
+            xywh {350 24 80 20}
           }
           Fl_Box {} {
             label {Dst host:port}
-            xywh {415 25 80 20}
+            xywh {445 25 80 20}
           }
           Fl_Box {} {
             label password
-            xywh {810 25 65 20}
+            xywh {840 25 65 20}
           }
           Fl_Box {} {
             label {username @@ssh_server_ip  :   ssh_port}
-            xywh {528 25 260 20}
+            xywh {558 25 260 20}
           }
           Fl_Box {} {
             label {No.}
@@ -51,51 +51,50 @@ class BasicView {open
         Fl_Group tunnel_row {open
           xywh {15 54 913 36} box BORDER_BOX color 54 align 0
         } {
+          Fl_Choice forward_type_choice {open selected
+            xywh {200 60 75 24} down_box BORDER_BOX
+          } {}
           Fl_Box index_txt {
             label 1
             xywh {50 62 20 20} color 46 labelfont 1 labelcolor 229
           }
-          Fl_Menu_Button forward_type_choice {
-            label menu open
-            xywh {190 62 60 20}
-          } {}
           Fl_Button start_btn {
-            image {asset\\play.png} deimage {asset\\inactive_play.png} xywh {260 59 24 24} box FLAT_BOX color 255 align 16
+            image {asset\\play.png} deimage {asset\\inactive_play.png} xywh {290 59 24 24} box FLAT_BOX color 255 align 16
           }
           Fl_Button stop_btn {
-            image {asset\\stop.png} deimage {asset\\inactive_stop.png} xywh {285 59 24 24} box FLAT_BOX color 255 align 16 deactivate
+            image {asset\\stop.png} deimage {asset\\inactive_stop.png} xywh {315 59 24 24} box FLAT_BOX color 255 align 16 deactivate
           }
           Fl_Input name_iuput {
-            xywh {90 61 95 24} labeltype NO_LABEL
+            xywh {90 60 95 24} labeltype NO_LABEL
           }
           Fl_Input forward_port_iuput {
-            xywh {325 61 70 24} labeltype NO_LABEL
+            xywh {355 60 70 24} labeltype NO_LABEL
             class ValueInput
           }
           Fl_Input dst_server_port_input {
-            xywh {400 61 110 24} labeltype NO_LABEL
+            xywh {430 60 110 24} labeltype NO_LABEL
           }
           Fl_Input ssh_username_iuput {
-            xywh {522 61 78 24} labeltype NO_LABEL
+            xywh {552 60 78 24} labeltype NO_LABEL
           }
           Fl_Input ssh_server_ip_iuput {
-            xywh {620 61 85 24} labeltype NO_LABEL
+            xywh {650 60 85 24} labeltype NO_LABEL
           }
           Fl_Input ssh_port_iuput {
-            xywh {715 61 80 24} labeltype NO_LABEL
+            xywh {745 60 80 24} labeltype NO_LABEL
             class ValueInput
           }
           Fl_Input pwd_input {
-            xywh {805 61 85 24} labeltype NO_LABEL
+            xywh {835 60 85 24} labeltype NO_LABEL
             class SecretInput
           }
           Fl_Box {} {
             label {@@}
-            xywh {600 62 20 20}
+            xywh {630 62 20 20}
           }
           Fl_Box {} {
             label {:}
-            xywh {705 62 10 20} labelfont 1
+            xywh {735 62 10 20} labelfont 1
           }
           Fl_Check_Button check_box {
             label button

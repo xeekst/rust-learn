@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use fltk::browser::*;
 use fltk::button::*;
 use fltk::dialog::*;
@@ -22,6 +24,7 @@ use crate::basic_view::BasicView;
 use crate::MsgType;
 use crate::UiMessage;
 use crate::RWLOCK_MSG_CHANNEL;
+use crate::ssh_tunnel::SSHTunnel;
 
 pub struct SSHTunnelView {
     pub basic_view: BasicView,
@@ -31,7 +34,7 @@ pub struct SSHTunnelView {
         CheckButton,
         Frame,
         Input,
-        MenuButton,
+        Choice,
         Button,
         Button,
         ValueInput,
@@ -92,11 +95,6 @@ impl SSHTunnelView {
             None,
         );
         tunnel.end();
-        // let border = color = if self.tunnel_rows.len() % 2 == 0 {
-        //     self.basic_view.tunnel_row.color()
-        // } else {
-        //     Color::Blue
-        // };
         tunnel.set_color(self.basic_view.tunnel_row.color());
         tunnel.set_align(unsafe { std::mem::transmute(0) });
         tunnel.set_frame(FrameType::BorderBox);
@@ -115,13 +113,16 @@ impl SSHTunnelView {
         index_txt.set_label_color(Color::by_index(229));
         tunnel.add(&index_txt);
 
-        let mut forward_type_choice = MenuButton::new(
+        let mut forward_type_choice = Choice::new(
             self.basic_view.forward_type_choice.x(),
             y,
             self.basic_view.forward_type_choice.w(),
             self.basic_view.forward_type_choice.h(),
             "menu",
         );
+        forward_type_choice.set_label("");
+        forward_type_choice.add_choice("Local");
+        forward_type_choice.add_choice("Remote");
         forward_type_choice.end();
         tunnel.add(&forward_type_choice);
 
@@ -294,6 +295,80 @@ impl SSHTunnelView {
     }
 }
 
-fn start_ssh_tunnel(tunnel_id: &str) {}
+pub fn handle_view_msg(view: &mut SSHTunnelView, ui_msg: UiMessage, map: &mut HashMap<String, SSHTunnel>) {
+    match ui_msg.msg_type {
+        MsgType::INFO => todo!(),
+        MsgType::ERROR => todo!(),
+        MsgType::AddTunnelRow => view.add_ssh_tunnel_row(),
+        MsgType::StartTunnel => {
+            println!("recv message :{:?}", ui_msg);
+            let index: usize = ui_msg.msg.parse().unwrap();
+            let (
+                tunnel,
+                check_box,
+                index_txt,
+                name_iuput,
+                forward_type_choice,
+                ref mut start_btn,
+                ref mut stop_btn,
+                forward_port_iuput,
+                dst_server_port_input,
+                ssh_username_iuput,
+                ssh_server_ip_iuput,
+                ssh_port_iuput,
+                pwd_input,
+            ): &mut (
+                Group,
+                CheckButton,
+                Frame,
+                Input,
+                Choice,
+                Button,
+                Button,
+                ValueInput,
+                Input,
+                Input,
+                Input,
+                ValueInput,
+                SecretInput,
+            ) = view.tunnel_rows.get_mut(index).unwrap();
+            let key = &ui_msg.msg;
 
-fn stop_ssh_tunnel(tunnel_id: &str) {}
+            start_btn.deactivate();
+            stop_btn.deactivate();
+
+            if map.contains_key(key) {
+                map.remove(key);
+            }
+            let mut ssh_tunnel = SSHTunnel::new(
+                &ui_msg.msg,
+                &name_iuput.value().clone(),
+                &forward_port_iuput.value().to_string(),
+                &dst_server_port_input.value().clone(),
+                &ssh_username_iuput.value().clone(),
+                &ssh_server_ip_iuput.value().clone(),
+                &ssh_port_iuput.value().to_string(),
+                &pwd_input.value().clone(),
+            );
+            ssh_tunnel.start_tunnel().unwrap();
+            map.insert(key.to_string(), ssh_tunnel);
+
+            stop_btn.activate();
+        }
+        MsgType::StopTunnel => todo!(),
+        MsgType::ResizeMainWindow => {
+            let arr = ui_msg.msg.split("|").collect::<Vec<&str>>();
+            let w = arr.get(2).unwrap().parse::<i32>().unwrap();
+            let h = arr.get(3).unwrap().parse::<i32>().unwrap();
+
+            view.basic_view.scroll_view.resize(
+                view.basic_view.scroll_view.x(),
+                view.basic_view.scroll_view.y(),
+                w,
+                h - 20,
+            )
+        }
+    }
+
+    view.basic_view.scroll_view.redraw();
+}
