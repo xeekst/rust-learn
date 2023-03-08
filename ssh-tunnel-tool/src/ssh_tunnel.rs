@@ -96,7 +96,7 @@ impl SSHTunnel {
     }
 }
 
-pub fn check_ssh_tunnels(ssh_tunnel_map: &mut HashMap<String, SSHTunnel>) {
+pub fn check_ssh_tunnels(ssh_tunnel_map: &mut HashMap<usize, SSHTunnel>) {
     ssh_tunnel_map.iter_mut().for_each(|(k, v)| {
         if let Some(ref s) = v.ssh {
             if !s.is_alive() {

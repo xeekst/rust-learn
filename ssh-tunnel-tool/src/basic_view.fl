@@ -13,97 +13,101 @@ class BasicView {open
         xywh {0 20 960 180} color 54 labelfont 1 align 0
       } {
         Fl_Group {} {open
-          xywh {0 20 944 30} box BORDER_BOX
+          xywh {0 20 944 30} box BORDER_BOX color 46
         } {
           Fl_Box {} {
             label Name
-            xywh {115 24 45 20}
+            xywh {80 24 45 20}
           }
           Fl_Box {} {
             label Type
-            xywh {215 25 40 20}
+            xywh {180 25 40 20}
           }
           Fl_Box {} {
             label {Start/Stop}
-            xywh {280 25 70 20}
+            xywh {245 25 70 20}
           }
           Fl_Box {} {
             label {Forward port}
-            xywh {350 24 80 20}
+            xywh {315 24 80 20}
           }
           Fl_Box {} {
-            label {Dst host:port} selected
-            xywh {445 25 80 20}
+            label {Dst host:port}
+            xywh {410 25 80 20}
           }
           Fl_Box {} {
             label password
-            xywh {840 25 65 20}
+            xywh {805 25 65 20}
           }
           Fl_Box {} {
             label {username @@ssh_server_ip  :   ssh_port}
-            xywh {558 25 260 20}
+            xywh {523 25 260 20}
           }
           Fl_Box {} {
             label {No.}
-            xywh {47 25 30 20}
+            xywh {25 25 30 20}
+          }
+          Fl_Box {} {
+            label del
+            xywh {890 25 28 20}
           }
         }
-        Fl_Group tunnel_row {open
-          xywh {15 54 913 36} box BORDER_BOX color 54 align 0
+        Fl_Group tunnel_row {
+          label g_id open selected
+          xywh {15 54 913 36} box BORDER_BOX color 54 labelcolor 54 align 0
         } {
           Fl_Choice forward_type_choice {open
-            xywh {200 60 75 24} down_box BORDER_BOX
+            xywh {165 60 75 24} down_box BORDER_BOX
           } {}
           Fl_Box index_txt {
             label 1
-            xywh {50 62 20 20} color 46 labelfont 1 labelcolor 229
+            xywh {28 62 20 20} color 46 labelfont 1 labelcolor 229
           }
           Fl_Button start_btn {
-            image {asset\\play.png} deimage {asset\\inactive_play.png} xywh {290 59 24 24} box FLAT_BOX color 255 align 16
+            image {asset\\play.png} deimage {asset\\inactive_play.png} xywh {255 59 24 24} box FLAT_BOX color 255 align 16
           }
           Fl_Button stop_btn {
-            image {asset\\stop.png} deimage {asset\\inactive_stop.png} xywh {315 59 24 24} box FLAT_BOX color 255 align 16 deactivate
+            image {asset\\stop.png} deimage {asset\\inactive_stop.png} xywh {280 59 24 24} box FLAT_BOX color 255 align 16 deactivate
+          }
+          Fl_Button del_btn {
+            image {asset\\del.png} deimage {asset\\inactive_del.png} xywh {890 60 24 24} box FLAT_BOX color 255 align 16 deactivate
           }
           Fl_Input name_iuput {
-            xywh {90 60 95 24} labeltype NO_LABEL
+            xywh {55 60 95 24} labeltype NO_LABEL
           }
           Fl_Input forward_port_iuput {
-            xywh {355 60 70 24} labeltype NO_LABEL
+            xywh {320 60 70 24} labeltype NO_LABEL
             class IntInput
           }
           Fl_Input dst_server_port_input {
-            xywh {430 60 110 24} labeltype NO_LABEL
+            xywh {395 60 110 24} labeltype NO_LABEL
           }
           Fl_Input ssh_username_iuput {
-            xywh {552 60 78 24} labeltype NO_LABEL
+            xywh {517 60 78 24} labeltype NO_LABEL
           }
           Fl_Input ssh_server_ip_iuput {
-            xywh {650 60 85 24} labeltype NO_LABEL
+            xywh {615 60 85 24} labeltype NO_LABEL
           }
           Fl_Input ssh_port_iuput {
-            xywh {745 60 80 24} labeltype NO_LABEL
+            xywh {710 60 80 24} labeltype NO_LABEL
             class IntInput
           }
           Fl_Input pwd_input {
-            xywh {835 60 85 24} labeltype NO_LABEL
+            xywh {800 60 85 24} labeltype NO_LABEL
             class SecretInput
           }
           Fl_Box at_box {
             label {@@}
-            xywh {630 62 20 20}
+            xywh {595 62 20 20}
           }
           Fl_Box box2 {
             label {:}
-            xywh {735 62 10 20} labelfont 1
-          }
-          Fl_Check_Button check_box {
-            label button
-            xywh {20 65 15 15} down_box DOWN_BOX color 229 selection_color 228 labeltype NO_LABEL labelcolor 229
+            xywh {700 62 10 20} labelfont 1
           }
         }
       }
       Fl_Menu_Bar menu {open
-        xywh {0 0 960 20}
+        xywh {0 0 960 20} color 46
       } {
         MenuItem add_btn {
           label {+}

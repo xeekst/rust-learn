@@ -55,6 +55,7 @@ pub enum MsgType {
     ResizeMainWindow,
     StartTunnel,
     StopTunnel,
+    DeleteTunnel
 }
 
 fn main() {
@@ -66,7 +67,7 @@ fn main() {
         .remove(&view.basic_view.tunnel_row);
     view.add_ssh_tunnel_row();
 
-    let mut map: HashMap<String, SSHTunnel> = HashMap::new();
+    let mut map: HashMap<usize, SSHTunnel> = HashMap::new();
     let mut last_time = chrono::Local::now();
 
     app::add_idle3(move |_| match RWLOCK_MSG_CHANNEL.read() {

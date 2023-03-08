@@ -19,4 +19,8 @@ fn main() {
     let orig = "21BNSIT209_PF3KXVHL***123456***7753-DE23-B948-FB0G";
     let encoded: String = general_purpose::STANDARD.encode(orig);
     println!("base64:{}", encoded);
+
+    for i in 5..1 {
+        println!("{}", i);
+    }
 }

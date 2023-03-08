@@ -32,7 +32,6 @@ pub struct SSHTunnelView {
 
     pub tunnel_rows: Vec<(
         Group,
-        CheckButton,
         Frame,
         Input,
         Choice,
@@ -44,6 +43,7 @@ pub struct SSHTunnelView {
         Input,
         IntInput,
         SecretInput,
+        Button,
     )>,
 }
 
@@ -83,6 +83,8 @@ impl SSHTunnelView {
             self.basic_view.name_iuput.y()
         };
 
+        let group_id = chrono::Local::now().timestamp_micros().to_string();
+
         let mut tunnel = Group::new(
             self.basic_view.tunnel_row.x(),
             if self.tunnel_rows.len() > 0 {
@@ -94,7 +96,9 @@ impl SSHTunnelView {
             self.basic_view.tunnel_row.h(),
             None,
         );
+        tunnel.set_label(&group_id);
         tunnel.end();
+        tunnel.set_label_color(self.basic_view.tunnel_row.label_color());
         tunnel.set_color(self.basic_view.tunnel_row.color());
         tunnel.set_align(unsafe { std::mem::transmute(0) });
         tunnel.set_frame(FrameType::BorderBox);
@@ -168,6 +172,26 @@ impl SSHTunnelView {
         stop_btn.deactivate();
         tunnel.add(&stop_btn);
 
+        let mut del_btn = Button::new(
+            self.basic_view.del_btn.x(),
+            y - 2,
+            self.basic_view.del_btn.width(),
+            self.basic_view.del_btn.h(),
+            None,
+        );
+        del_btn.set_image(Some(
+            SharedImage::load("asset\\del.png").expect("Could not find image: asset\\del.png"),
+        ));
+        del_btn.set_deimage(Some(
+            SharedImage::load("asset\\inactive_del.png")
+                .expect("Could not find image: ..\\asset\\inactive_del.png"),
+        ));
+        del_btn.set_frame(FrameType::FlatBox);
+        del_btn.set_color(Color::by_index(255));
+        del_btn.set_align(unsafe { std::mem::transmute(16) });
+        del_btn.activate();
+        tunnel.add(&del_btn);
+
         let mut name_iuput = Input::new(
             self.basic_view.name_iuput.x(),
             y,
@@ -237,40 +261,33 @@ impl SSHTunnelView {
         let mut fl2rust_widget_11 = Frame::new(self.basic_view.box2.x(), y, 10, 20, ":");
         fl2rust_widget_11.set_label_font(Font::by_index(1));
         tunnel.add(&fl2rust_widget_11);
-        let mut check_box = CheckButton::new(
-            self.basic_view.check_box.x(),
-            y + 4,
-            self.basic_view.check_box.w(),
-            self.basic_view.check_box.h(),
-            None,
-        );
-        check_box.set_down_frame(FrameType::DownBox);
-        check_box.set_color(Color::by_index(229));
-        check_box.set_selection_color(Color::by_index(228));
-        check_box.set_label_type(LabelType::None);
-        check_box.set_label_color(Color::by_index(229));
-        tunnel.add(&check_box);
 
-        let start_btn_index = (self.tunnel_rows.len()).to_string();
-
+        let g_id = group_id.clone();
         start_btn.set_callback(move |b| {
             Self::send(UiMessage {
                 msg_type: MsgType::StartTunnel,
-                msg: start_btn_index.to_owned(),
+                msg: g_id.to_owned(),
             })
         });
 
-        let stop_btn_index = (self.tunnel_rows.len()).to_string();
+        let g_id = group_id.clone();
         stop_btn.set_callback(move |_| {
             Self::send(UiMessage {
                 msg_type: MsgType::StopTunnel,
-                msg: stop_btn_index.to_owned(),
+                msg: g_id.to_owned(),
+            })
+        });
+
+        let g_id = group_id.clone();
+        del_btn.set_callback(move |_| {
+            Self::send(UiMessage {
+                msg_type: MsgType::DeleteTunnel,
+                msg: g_id.to_owned(),
             })
         });
 
         self.tunnel_rows.push((
             tunnel,
-            check_box,
             index_txt,
             name_iuput,
             forward_type_choice,
@@ -282,30 +299,50 @@ impl SSHTunnelView {
             ssh_server_ip_iuput,
             ssh_port_iuput,
             pwd_input,
+            del_btn,
         ));
     }
 
-    pub fn try_start_tunnel_params(
+    pub fn delete_ssh_tunnel_row(&mut self, index: usize) {
+        println!("index:{index}");
+        if self.tunnel_rows.len() > index {
+            for i in (index + 1..self.tunnel_rows.len()).rev() {
+                let (x, y) = (self.tunnel_rows[i - 1].0.x(), self.tunnel_rows[i - 1].0.y());
+                self.tunnel_rows[i].0.set_pos(x, y);
+                self.tunnel_rows[i]
+                    .1
+                    .set_label((i - 1).to_string().as_str());
+            }
+            self.basic_view
+                .scroll_view
+                .remove(&self.tunnel_rows[index].0);
+            let tunnel = self.tunnel_rows.remove(index);
+            drop(tunnel);
+
+            self.basic_view.main_window.redraw();
+        }
+    }
+
+    pub fn try_verify_start_tunnel_params(
         &self,
         index: usize,
     ) -> Result<(String, String, i32, String, String, String, i32, String)> {
         let (
-            tunnel,
-            check_box,
-            index_txt,
+            _,
+            _,
             name_iuput,
             forward_type_choice,
-            start_btn,
-            stop_btn,
+            _,
+            _,
             forward_port_iuput,
             dst_server_port_input,
             ssh_username_iuput,
             ssh_server_ip_iuput,
             ssh_port_iuput,
             pwd_input,
+            _,
         ): &(
             Group,
-            CheckButton,
             Frame,
             Input,
             Choice,
@@ -317,6 +354,7 @@ impl SSHTunnelView {
             Input,
             IntInput,
             SecretInput,
+            Button,
         ) = &self.tunnel_rows.get(index).unwrap();
         let name = name_iuput.value();
         let forwart_type = match forward_type_choice.choice() {
@@ -356,6 +394,18 @@ impl SSHTunnelView {
         ))
     }
 
+    pub fn get_cur_index(&self, key: &str) -> usize {
+        let mut index = usize::MAX;
+        for i in 0..self.tunnel_rows.len() {
+            if self.tunnel_rows[i].0.label() == key.to_string() {
+                index = i;
+                break;
+            }
+        }
+        println!("cur index:{index}");
+        return index;
+    }
+
     fn send(m: UiMessage) {
         match &RWLOCK_MSG_CHANNEL.read() {
             Ok(channel) => {
@@ -370,7 +420,7 @@ impl SSHTunnelView {
 pub fn handle_view_msg(
     view: &mut SSHTunnelView,
     ui_msg: UiMessage,
-    map: &mut HashMap<String, SSHTunnel>,
+    map: &mut HashMap<usize, SSHTunnel>,
 ) {
     match ui_msg.msg_type {
         MsgType::INFO => todo!(),
@@ -378,7 +428,15 @@ pub fn handle_view_msg(
         MsgType::AddTunnelRow => view.add_ssh_tunnel_row(),
         MsgType::StartTunnel => {
             println!("recv message :{:?}", ui_msg);
-            let index: usize = ui_msg.msg.parse().unwrap();
+            let index = view.get_cur_index(&ui_msg.msg);
+
+            if index == usize::MAX {
+                fltk::dialog::alert_default(&format!(
+                    "can not found this({}) tunnel row.",
+                    ui_msg.msg
+                ));
+                return;
+            }
 
             let (
                 name,
@@ -389,7 +447,7 @@ pub fn handle_view_msg(
                 ssh_server_ip,
                 ssh_port,
                 pwd,
-            ) = match view.try_start_tunnel_params(index) {
+            ) = match view.try_verify_start_tunnel_params(index) {
                 Ok(t) => t,
                 Err(err) => {
                     fltk::dialog::alert_default(&format!("Oops! An error occurred:{:?}", err));
@@ -398,10 +456,9 @@ pub fn handle_view_msg(
             };
 
             let (
-                tunnel,
-                check_box,
-                index_txt,
-                name_iuput,
+                _,
+                _,
+                _,
                 forward_type_choice,
                 start_btn,
                 stop_btn,
@@ -411,9 +468,9 @@ pub fn handle_view_msg(
                 ssh_server_ip_iuput,
                 ssh_port_iuput,
                 pwd_input,
+                del_btn,
             ): &mut (
                 Group,
-                CheckButton,
                 Frame,
                 Input,
                 Choice,
@@ -425,14 +482,15 @@ pub fn handle_view_msg(
                 Input,
                 IntInput,
                 SecretInput,
+                Button,
             ) = view.tunnel_rows.get_mut(index).unwrap();
-            let key = &ui_msg.msg;
 
             start_btn.deactivate();
             stop_btn.deactivate();
 
-            if map.contains_key(key) {
-                map.remove(key);
+            if map.contains_key(&index) {
+                let st = map.remove(&index).unwrap();
+                drop(st);
             }
 
             let mut ssh_tunnel = SSHTunnel::new(
@@ -447,9 +505,10 @@ pub fn handle_view_msg(
                 &pwd,
             );
             ssh_tunnel.start_tunnel().unwrap();
-            map.insert(key.to_string(), ssh_tunnel);
+            map.insert(index, ssh_tunnel);
 
             stop_btn.activate();
+            del_btn.deactivate();
             forward_type_choice.deactivate();
             forward_port_iuput.deactivate();
             dst_server_port_input.deactivate();
@@ -470,6 +529,22 @@ pub fn handle_view_msg(
                 w,
                 h - 20,
             )
+        }
+        MsgType::DeleteTunnel => {
+            let index = view.get_cur_index(&ui_msg.msg);
+
+            if index == usize::MAX {
+                fltk::dialog::alert_default(&format!(
+                    "can not found this({}) tunnel row.",
+                    ui_msg.msg
+                ));
+                return;
+            }
+            if map.contains_key(&index) {
+                let st = map.remove(&index).unwrap();
+                drop(st);
+            }
+            view.delete_ssh_tunnel_row(index);
         }
     }
 
