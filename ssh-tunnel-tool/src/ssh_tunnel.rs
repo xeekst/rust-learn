@@ -9,7 +9,7 @@ use std::{
 };
 
 use anyhow::Result;
-use expectrl::{spawn, Session};
+use expectrl::{process::windows::WinProcess, spawn, Session};
 
 //#[derive(Debug)]
 pub struct SSHTunnel {
@@ -22,7 +22,22 @@ pub struct SSHTunnel {
     ssh_server: String,
     ssh_port: i32,
     ssh_pwd: String,
-    ssh: Option<Session>,
+    ssh: Option<
+        Session<
+            WinProcess,
+            expectrl::stream::log::LoggedStream<
+                expectrl::process::windows::ProcessStream,
+                std::io::Stdout,
+            >,
+        >,
+    >,
+    status: Status,
+}
+
+#[derive(PartialEq, Debug)]
+pub enum Status {
+    Started,
+    Stoped,
 }
 
 impl SSHTunnel {
@@ -36,18 +51,28 @@ impl SSHTunnel {
         ssh_server: &str,
         ssh_port: i32,
         ssh_pwd: &str,
+        status: Status,
     ) -> SSHTunnel {
         SSHTunnel {
             id: id.to_string(),
             name: name.to_string(),
-            forward_port: forward_port,
+            forward_port,
             dst_host_port: dst_host_port.to_string(),
             ssh_username: ssh_username.to_string(),
             ssh_server: ssh_server.to_string(),
-            ssh_port: ssh_port,
+            ssh_port,
             ssh_pwd: ssh_pwd.to_string(),
             ssh: Option::None,
             forward_type: forward_type.to_string(),
+            status,
+        }
+    }
+
+    pub fn stop_tunnel(&mut self) {
+        if let Some(ssh) = &self.ssh {
+            self.status = Status::Stoped;
+            drop(ssh);
+            self.ssh = Option::None;
         }
     }
 
@@ -64,7 +89,12 @@ impl SSHTunnel {
         );
         println!("command:{}", command);
 
-        let mut ssh = spawn(&command).expect(&format!("Unknown command: {:?}", command));
+        let mut ssh = spawn(&command)
+            .expect(&format!("Unknown command: {:?}", command))
+            .with_log(std::io::stdout())?;
+
+        let start_time = chrono::Local::now();
+
         loop {
             match expectrl::check!(
                 &mut ssh,
@@ -77,19 +107,19 @@ impl SSHTunnel {
                     ssh.send_line(&self.ssh_pwd).unwrap();
                     break;
                 },
-                // default  => {
-                //     println!("default");
-                //     let mut buf = String::from("");
-                //     ssh.read_line(&mut buf).unwrap();
-                //     eprintln!("unknown ssh output:{:#?}, will be exit.", buf);
-                //     break;
-                // },
+                default  => {
+                    if (chrono::Local::now() - start_time) > chrono::Duration::seconds(3) {
+                        eprintln!("timout 3s. will be break.");
+                        break;
+                    }
+                }
             ) {
                 Err(expectrl::Error::Eof) => break,
                 result => result.expect("Check output failed"),
             };
         }
 
+        println!("init ssh success.");
         self.ssh = Some(ssh);
 
         Ok(())
@@ -98,9 +128,20 @@ impl SSHTunnel {
 
 pub fn check_ssh_tunnels(ssh_tunnel_map: &mut HashMap<usize, SSHTunnel>) {
     ssh_tunnel_map.iter_mut().for_each(|(k, v)| {
-        if let Some(ref s) = v.ssh {
-            if !s.is_alive() {
-                v.start_tunnel().unwrap();
+        if v.status == Status::Started {
+            match v.ssh {
+                Some(ref ssh) => {
+                    if ssh.is_alive() {
+                        return;
+                    } else {
+                        println!("ssh is deaded. will drop it and retry...");
+                        drop(ssh);
+                        v.start_tunnel().unwrap();
+                    }
+                }
+                None => {
+                    v.start_tunnel().unwrap();
+                }
             }
         }
     });

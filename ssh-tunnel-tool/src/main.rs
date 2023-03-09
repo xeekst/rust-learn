@@ -79,7 +79,7 @@ fn main() {
                 handle_view_msg(&mut view, m, &mut map);
             }
 
-            if (chrono::Local::now() - last_time) > chrono::Duration::seconds(10) {
+            if (chrono::Local::now() - last_time) > chrono::Duration::seconds(5) {
                 last_time = chrono::Local::now();
                 check_ssh_tunnels(&mut map);
             }

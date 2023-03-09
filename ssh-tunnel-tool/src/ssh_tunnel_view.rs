@@ -503,7 +503,9 @@ pub fn handle_view_msg(
                 &ssh_server_ip,
                 ssh_port,
                 &pwd,
+                crate::ssh_tunnel::Status::Started,
             );
+
             ssh_tunnel.start_tunnel().unwrap();
             map.insert(index, ssh_tunnel);
 
@@ -517,7 +519,61 @@ pub fn handle_view_msg(
             ssh_port_iuput.deactivate();
             pwd_input.deactivate();
         }
-        MsgType::StopTunnel => todo!(),
+        MsgType::StopTunnel => {
+            println!("recv message :{:?}", ui_msg);
+            let index = view.get_cur_index(&ui_msg.msg);
+
+            if index == usize::MAX {
+                fltk::dialog::alert_default(&format!(
+                    "can not found this({}) tunnel row.",
+                    ui_msg.msg
+                ));
+                return;
+            }
+            let tunnel = map.get_mut(&index).unwrap();
+            tunnel.stop_tunnel();
+
+            let (
+                _,
+                _,
+                _,
+                forward_type_choice,
+                start_btn,
+                stop_btn,
+                forward_port_iuput,
+                dst_server_port_input,
+                ssh_username_iuput,
+                ssh_server_ip_iuput,
+                ssh_port_iuput,
+                pwd_input,
+                del_btn,
+            ): &mut (
+                Group,
+                Frame,
+                Input,
+                Choice,
+                Button,
+                Button,
+                IntInput,
+                Input,
+                Input,
+                Input,
+                IntInput,
+                SecretInput,
+                Button,
+            ) = view.tunnel_rows.get_mut(index).unwrap();
+
+            stop_btn.deactivate();
+            start_btn.activate();
+            del_btn.activate();
+            forward_type_choice.activate();
+            forward_port_iuput.activate();
+            dst_server_port_input.activate();
+            ssh_username_iuput.activate();
+            ssh_server_ip_iuput.activate();
+            ssh_port_iuput.activate();
+            pwd_input.activate();
+        }
         MsgType::ResizeMainWindow => {
             let arr = ui_msg.msg.split("|").collect::<Vec<&str>>();
             let w = arr.get(2).unwrap().parse::<i32>().unwrap();
