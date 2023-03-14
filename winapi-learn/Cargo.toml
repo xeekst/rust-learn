@@ -1,0 +1,12 @@
+[package]
+name = "winapi-learn"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+libc = "0.2.17"
+winapi = "0.2.8"
+user32-sys = "0.2.0"
+kernel32-sys = "0.2.2"
