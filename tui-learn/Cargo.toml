@@ -8,3 +8,5 @@ edition = "2021"
 [dependencies]
 tui = "0.19"
 crossterm = "0.25"
+unicode-segmentation = "1.2"
+unicode-width = "0.1"
