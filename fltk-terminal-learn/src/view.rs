@@ -32,12 +32,6 @@ impl UserInterface {
 	fl2rust_widget_0.end();
 	fl2rust_widget_0.show();
 	let mut terminal = SimpleTerminal::new(45, 24, 360, 257, None);
-	terminal.insert("\x1b[93mError\x1b[0m");
-	terminal.insert("\x1b[93mError\x1b[0m");
-	terminal.insert("\x1b[93mError\x1b[0m");
-	terminal.insert("\x1b[93mError\x1b[0m");
-	terminal.insert("\x1b[93mError\x1b[0m");
-	terminal.insert("\x1b[93mError\x1b[0m");
 	fl2rust_widget_0.add(&terminal);
 	Self { terminal, }
     }
