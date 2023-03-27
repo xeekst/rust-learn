@@ -1,3 +1,5 @@
+use std::{fs, path::PathBuf};
+
 use base64::{engine::general_purpose, Engine as _};
 
 fn main() {
@@ -22,5 +24,25 @@ fn main() {
 
     for i in 5..1 {
         println!("{}", i);
+    }
+
+    let cur_build_number_path = PathBuf::from("cur_build_number_path");
+    let mut cur_build_number = -1;
+    if cur_build_number_path.exists() {
+        cur_build_number = match fs::read_to_string(&cur_build_number_path)
+            .unwrap()
+            .parse::<i32>()
+        {
+            std::result::Result::Ok(r) => r,
+            Err(err) => -1,
+        }
+    }
+    println!("cur_build_number:{cur_build_number}");
+
+    let hec_package_dir = "C:/Packages/windowsAgent/plugin";
+    println!("{:?}", PathBuf::from(hec_package_dir).join("dir3"));
+    if !PathBuf::from(hec_package_dir).join("dir3").exists() {
+        
+        fs::create_dir_all(PathBuf::from(hec_package_dir).join("dir3")).unwrap();
     }
 }
