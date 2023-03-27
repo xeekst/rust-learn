@@ -33,6 +33,7 @@ impl Drop for Process {
 }
 
 fn main() {
+    //system("taskkill /F /T /IM program.exe");
     let child = process::Command::new("ping")
         .arg("8.8.8.8")
         .arg("-t")
