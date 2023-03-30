@@ -6,14 +6,14 @@ fn main() {
     // let f = logging(add);
     // let r = f(33).unwrap();
 
-    // add_de();
+    println!("add_de:{}", add_de(22));
 }
 
 #[logging_proc]
-pub fn add_de() -> () {
-    println!("step 2222");
+pub fn add_de(a: i32) -> i32 {
+    println!("step 2222:{a}");
 
-    ()
+    a + 1
 }
 
 pub fn add(i: i32) -> Result<i32> {

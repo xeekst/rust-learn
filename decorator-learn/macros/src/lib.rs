@@ -11,8 +11,8 @@ pub fn logging_proc(attr: TokenStream, item: TokenStream) -> TokenStream {
     let block = &input.block;
 
     let gen = quote! {
-        #vis fn #ident() {
-            println!("An hhhhhhhhhhhhhhhhhhhhh");
+        #vis fn #ident(a:i32) -> i32{
+            println!("An hhhhhhhhhhhhhhhhhhhhh:a:{}",a);
             #block
         }
     };
