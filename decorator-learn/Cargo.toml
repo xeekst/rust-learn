@@ -8,3 +8,5 @@ edition = "2021"
 [dependencies]
 anyhow = "1.0.69"
 macros = { path = "./macros" }
+adorn = "0.4.0"
+retry = "2.0.0"
