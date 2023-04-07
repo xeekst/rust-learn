@@ -1,9 +1,0 @@
-[package]
-name = "attr-proc-macro-learn"
-version = "0.1.0"
-edition = "2021"
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
-[dependencies]
-attr_like_macro = { path="attr_like_macro" }
