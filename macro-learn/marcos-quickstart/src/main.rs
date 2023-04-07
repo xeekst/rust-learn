@@ -1,6 +1,6 @@
 use std::env::args;
 
-use proc_macro::{funcation_like_proc_macro, attribute_proc_macro, PrintRR};
+use proc_macro::{attribute_proc_macro, funcation_like_proc_macro, test, PrintRR};
 
 // Shorthand for initializing a `String`.
 macro_rules! S {
@@ -44,6 +44,35 @@ macro_rules! vec_strs {
 macro_rules! repeat_two {
     ($($i:ident)*,$($i2:ident)*) => {
         $(let $i:(); let $i2:();)*
+    };
+}
+
+#[macro_export]
+macro_rules! my_vec {
+    // 匹配空输入，创建一个新的 vector
+    () => {
+        std::vec::Vec::new()
+    };
+
+    // 匹配类似于 vec![0; 10] 的输入
+    ( $elem: expr ; $n: expr ) => {
+        std::vec::from_elem($elem, $n)
+    };
+
+    // 匹配类似于 vec![1, 2, 3] 的输入
+    ( $( $elem: expr ),* ) => {
+        // 由于我们将生成多条语句，因此必须再用 {} 包起来
+        {
+            let mut v = std::vec::Vec::new();
+            $( v.push($elem); )*
+            v
+        }
+    };
+
+    // 匹配类似于 vec![1, 2, 3, ] 的输入
+    ( $( $elem: expr, )* ) => {
+        // 递归调用
+        my_vec![ $( $elem ),* ]
     };
 }
 
@@ -315,6 +344,25 @@ macro_rules! it_is_opaque {
     };
 }
 
+macro_rules! ambiguty {
+    ($($i:ident)* $j:ident) => {};
+}
+
+fn test_attribute_macro() {}
+#[attribute_proc_macro]
+fn foo() {}
+
+#[attribute_proc_macro(attributes are pretty handsome)]
+fn bar() {}
+
+pub trait PrintRR {
+    fn doit() {}
+}
+
+#[derive(proc_macro::PrintRR)]
+struct FooRR;
+
+
 fn main() {
     let fib = recurrence![a[n]: u64 = 0, 1; ...; a[n-2] + a[n-1]];
 
@@ -333,13 +381,24 @@ fn main() {
         break 'foo bar
     }
 
+    println!("======== idents:()");
+    idents! (
+            // _ <- This is not an ident, it is a pattern
+            foo
+            async
+            O_________O
+            _____O_____
+            literal
+    );
+
+    println!("======== idents:{{}}");
     idents! {
-        // _ <- This is not an ident, it is a pattern
-        foo
-        async
-        O_________O
-        _____O_____
-        literal
+            // _ <- This is not an ident, it is a pattern
+            foo
+            async
+            O_________O
+            _____O_____
+            literal
     }
 
     items! {
@@ -402,6 +461,15 @@ fn main() {
     println!("{}", it_is_opaque!(,));
 
     test_funcation_like();
+    println!("proc_attr:");
+    dbg!(bar());
+    foo();
+    //let f = FooRR{};
+    FooRR::doit();
+
+    let q = test!();
+    dbg!(q); // q = 6
+
 }
 
 //######################### 过程宏 ########################
@@ -413,18 +481,3 @@ fn test_funcation_like() {
     });
 }
 
-fn test_attribute_macro() {
-    
-}
-#[attribute_proc_macro]
-fn foo() {}
-
-#[attribute_proc_macro(attributes are pretty handsome)]
-fn bar() {}
-
-trait PrintRR{
-    fn doit(){}
-}
-
-#[derive(proc_macro::PrintRR)]
-struct FooRR;
