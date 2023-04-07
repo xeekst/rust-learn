@@ -133,8 +133,6 @@ pub fn testprint(attr: TokenStream, item: TokenStream) -> TokenStream {
     //         .parse(attr)
     //         .unwrap();
 
-    
-
     let testprint_attr = parse_macro_input!(attr as TestPrintAttr);
     let input_fn = parse_macro_input!(item as syn::ItemFn);
 
