@@ -10,7 +10,7 @@ fn main() {
     println!("error:{:?}",env::var("RUST_BACKTRACE"));
     //panic!("asg");
     if let Err(e) = test_anyhow() {
-        println!("e:{:?} , backtrace:{:?}", e, e.backtrace());
+        println!("e:{:?} , anyhow backtrace:{:#?}", e, e.backtrace());
     }
 }
 
