@@ -1,7 +1,7 @@
 use proc_macro::TokenStream;
 use quote::{quote, quote_spanned};
 use syn::{
-    parse::{Parse, ParseStream},
+    parse::{Parse, ParseStream, Parser},
     parse_macro_input,
     punctuated::Punctuated,
     spanned::Spanned,
@@ -17,8 +17,9 @@ impl Parse for TestPrintAttr {
     fn parse(input: ParseStream) -> Result<Self> {
         let mut name = None;
         let mut times = None;
-
-        // 第一种 解析为：Token![,] 分割的数组
+        // 第二种 用syn::punctuated::Punctuated::parse_terminated来解析
+        //let name_values: Punctuated<syn::MetaNameValue, syn::Token![,]> = syn::punctuated::Punctuated::parse_terminated(input).unwrap();
+        // 第三种 解析为：Token![,] 分割的数组
         let name_values = input.parse_terminated(Meta::parse, Token![,])?;
         println!("name_values len:{}", name_values.len());
         for nv in name_values {
@@ -54,7 +55,7 @@ impl Parse for TestPrintAttr {
             }
         }
 
-        // 第二种 按固定顺序解析
+        // 第四种 按固定顺序解析
         // let m1 = input.parse::<Meta>()?;
         // match m1 {
         //     Meta::NameValue(ref name_value) => match name_value.path.get_ident() {
@@ -126,6 +127,12 @@ impl Parse for TestPrintAttr {
 
 #[proc_macro_attribute]
 pub fn testprint(attr: TokenStream, item: TokenStream) -> TokenStream {
+    // 第一种 直接解析为MetaNameValues
+    // let name_values: Punctuated<syn::MetaNameValue, syn::Token![,]> =
+    //     syn::punctuated::Punctuated::parse_terminated
+    //         .parse(attr)
+    //         .unwrap();
+
     let testprint_attr = parse_macro_input!(attr as TestPrintAttr);
     let input_fn = parse_macro_input!(item as syn::ItemFn);
 
