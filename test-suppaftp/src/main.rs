@@ -11,7 +11,7 @@ fn main() {
         .danger_accept_invalid_certs(true)
         .danger_accept_invalid_hostnames(true)
         .build().unwrap();
-    let mut ftp_stream = ftp_stream.into_secure(tls, "LENOVO").unwrap();
+    let mut ftp_stream = ftp_stream.into_secure(tls, "need-replace").unwrap();
     ftp_stream.login("ftps_automation", "1qasw@").unwrap();
     let files: Vec<File> = ftp_stream.list(None).ok().unwrap().iter().map(|x| File::try_from(x.as_str()).ok().unwrap()).collect();
 

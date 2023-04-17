@@ -85,7 +85,7 @@
     </Case>
     <Case Order = "11" >
         <CaseID>11</CaseID>
-        <CaseName>OS_PowerOptions_08_DTWS_LenovoDefaultTurnOffTheDisplay</CaseName>
+        <CaseName>OS_PowerOptions_08_DTWS_need-replaceDefaultTurnOffTheDisplay</CaseName>
         <Filter>test=~/PPA_100108_OSPowerOptions08.*/</Filter>
         <PlanTime>1</PlanTime>
         <ActualTime>0</ActualTime>
@@ -93,7 +93,7 @@
     </Case>
     <Case Order = "12" >
         <CaseID>12</CaseID>
-        <CaseName>OS_PowerOptions_09_DTWS_LenovoDefaultPutTheComputerToSleep</CaseName>
+        <CaseName>OS_PowerOptions_09_DTWS_need-replaceDefaultPutTheComputerToSleep</CaseName>
         <Filter>test=~/PPA_100109_OSPowerOptions09.*/</Filter>
         <PlanTime>1</PlanTime>
         <ActualTime>0</ActualTime>
@@ -101,7 +101,7 @@
     </Case>
     <Case Order = "13" >
         <CaseID>13</CaseID>
-        <CaseName>OS_PowerOptions_10_DT_LenovoDefaultTurnOffHardDisk</CaseName>
+        <CaseName>OS_PowerOptions_10_DT_need-replaceDefaultTurnOffHardDisk</CaseName>
         <Filter>test=~/PPA_100110_OSPowerOptions10.*/</Filter>
         <PlanTime>1</PlanTime>
         <ActualTime>0</ActualTime>
@@ -109,7 +109,7 @@
     </Case>
     <Case Order = "14" >
         <CaseID>14</CaseID>
-        <CaseName>OS_PowerOptions_11_DT_LenovoDefaultHibernateAfter</CaseName>
+        <CaseName>OS_PowerOptions_11_DT_need-replaceDefaultHibernateAfter</CaseName>
         <Filter>test=~/PPA_100111_OSPowerOptions11.*/</Filter>
         <PlanTime>1</PlanTime>
         <ActualTime>0</ActualTime>
@@ -117,7 +117,7 @@
     </Case>
     <Case Order = "15" >
         <CaseID>15</CaseID>
-        <CaseName>OS_PowerOptions_12_DT_LenovoDefaultPowerButtonAction</CaseName>
+        <CaseName>OS_PowerOptions_12_DT_need-replaceDefaultPowerButtonAction</CaseName>
         <Filter>test=~/PPA_100112_OSPowerOptions12.*/</Filter>
         <PlanTime>1</PlanTime>
         <ActualTime>0</ActualTime>
@@ -125,7 +125,7 @@
     </Case>
     <Case Order = "16" >
         <CaseID>16</CaseID>
-        <CaseName>OS_PowerOptions_13_DT_LenovoDefaultDisplayBrightness</CaseName>
+        <CaseName>OS_PowerOptions_13_DT_need-replaceDefaultDisplayBrightness</CaseName>
         <Filter>test=~/PPA_100113_OSPowerOptions13.*/</Filter>
         <PlanTime>1</PlanTime>
         <ActualTime>0</ActualTime>
@@ -181,8 +181,8 @@
     </Case>
     <Case Order = "23" >
         <CaseID>24</CaseID>
-        <CaseName>OS_Start_Menu_01_Lenovo_Group_Check</CaseName>
-        <Filter>test=~/PPA_20000_OSStartMenu01LenovoGroup.*/</Filter>
+        <CaseName>OS_Start_Menu_01_need-replace_Group_Check</CaseName>
+        <Filter>test=~/PPA_20000_OSStartMenu01need-replaceGroup.*/</Filter>
         <PlanTime>1</PlanTime>
         <ActualTime>0</ActualTime>
         <Reboot>NO</Reboot>
@@ -277,16 +277,16 @@
     </Case>
     <Case Order = "35" >
         <CaseID>36</CaseID>
-        <CaseName>OS_Lenovo_Audit_Date_01_Registry_Key_Check</CaseName>
-        <Filter>test=~/PPA_20010_OSLenovoAuditDate01RegistryKeyCheck.*/</Filter>
+        <CaseName>OS_need-replace_Audit_Date_01_Registry_Key_Check</CaseName>
+        <Filter>test=~/PPA_20010_OSneed-replaceAuditDate01RegistryKeyCheck.*/</Filter>
         <PlanTime>1</PlanTime>
         <ActualTime>0</ActualTime>
         <Reboot>NO</Reboot>
     </Case>
     <Case Order = "36" >
         <CaseID>37</CaseID>
-        <CaseName>OS_Lenovo_Audit_Date_02_Add_Remove_Programs_Check</CaseName>
-        <Filter>test=~/PPA_20010_OSLenovoAuditDate02AddRemovePrograms.*/</Filter>
+        <CaseName>OS_need-replace_Audit_Date_02_Add_Remove_Programs_Check</CaseName>
+        <Filter>test=~/PPA_20010_OSneed-replaceAuditDate02AddRemovePrograms.*/</Filter>
         <PlanTime>1</PlanTime>
         <ActualTime>0</ActualTime>
         <Reboot>NO</Reboot>
@@ -333,7 +333,7 @@
     </Case>
     <Case Order = "42" >
         <CaseID>43</CaseID>
-        <CaseName>OS_Disk_Management_DT_01_Think_LenovoV_Comsumer_ROW_Gaming_ROW_VolumeCheck</CaseName>
+        <CaseName>OS_Disk_Management_DT_01_Think_need-replaceV_Comsumer_ROW_Gaming_ROW_VolumeCheck</CaseName>
         <Filter>test=~/PPA_20041_OSDiskManagementDT01.*/</Filter>
         <PlanTime>1</PlanTime>
         <ActualTime>0</ActualTime>
@@ -341,7 +341,7 @@
     </Case>
     <Case Order = "43" >
         <CaseID>44</CaseID>
-        <CaseName>OS_Disk_Management_DT_02_ThinkLenovoVComsumerROWGamingROW_Disks_Check</CaseName>
+        <CaseName>OS_Disk_Management_DT_02_Thinkneed-replaceVComsumerROWGamingROW_Disks_Check</CaseName>
         <Filter>test=~/PPA_20041_OSDiskManagementDT02.*/</Filter>
         <PlanTime>1</PlanTime>
         <ActualTime>0</ActualTime>
