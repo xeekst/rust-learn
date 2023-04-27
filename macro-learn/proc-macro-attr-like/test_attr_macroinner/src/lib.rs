@@ -161,3 +161,30 @@ pub fn testprint(attr: TokenStream, item: TokenStream) -> TokenStream {
 
     TokenStream::from(output)
 }
+
+#[proc_macro_attribute]
+pub fn print_tokenstream(attr: TokenStream, item: TokenStream) -> TokenStream {
+    println!("item:{:?}", item);
+    let input_fn = parse_macro_input!(item as syn::ItemFn);
+
+    let fn_name = &input_fn.sig.ident;
+    let visibility = &input_fn.vis;
+    let input_args = &input_fn.sig.inputs;
+    let output = &input_fn.sig.output;
+    let block = &input_fn.block;
+    let gen = &input_fn.sig.generics;
+    let gen_where = &input_fn.sig.generics.where_clause;
+
+    let output = quote! {
+        #visibility fn #fn_name #gen(#input_args) #output 
+        #gen_where
+        {
+            println!("Test print {:?}: {:?}", stringify!(#fn_name), stringify!(#gen_where));
+            #block
+        }
+    };
+
+    println!("fn:{:?}", stringify!(output));
+
+    TokenStream::from(output)
+}
