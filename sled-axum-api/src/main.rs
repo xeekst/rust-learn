@@ -25,11 +25,11 @@ async fn main() {
     // build our application with a route
     let app = Router::new()
         .route("/", get(root))
-        .route("/users", post(create_user))
-        .route("/test_state", get(test_state))
-        // .route("/get_key", get(get_key))
-        // .route("/put_key", get(put_key))
-        .with_state(state);
+        // .route("/users", post(create_user))
+        // .route("/test_state", get(test_state))
+        .route("/get_key", get(get_key))
+        .route("/put_key", get(put_key))
+        .with_state(db);
 
     // run our app with hyper
     // `axum::Server` is a re-export of `hyper::Server`
@@ -58,7 +58,7 @@ async fn test_state(State(s):  State<AppState>) -> (StatusCode, String) {
     (StatusCode::OK, "".to_string())
 }
 
-async fn get_key(Extension(db): Extension<Db>) -> (StatusCode, String) {
+async fn get_key(State(db): State<Db>) -> (StatusCode, String) {
     let q_r = db.get("KEY1").unwrap();
 
     match q_r {
@@ -104,3 +104,16 @@ struct User {
     id: u64,
     username: String,
 }
+// use axum::extract::{Path, Query, Json};
+// use std::collections::HashMap;
+
+// // `Path` gives you the path parameters and deserializes them.
+// async fn path(Path(user_id): Path<u32>) {}
+
+// // `Query` gives you the query parameters and deserializes them.
+// async fn query(Query(params): Query<HashMap<String, String>>) {}
+
+// // Buffer the request body and deserialize it as JSON into a
+// // `serde_json::Value`. `Json` supports any type that implements
+// // `serde::Deserialize`.
+// async fn json(Json(payload): Json<serde_json::Value>) {}

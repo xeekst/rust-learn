@@ -88,12 +88,16 @@ fn main() {
         listen -port;
         proxy_pass ftp_pasv-port;
     }"#;
-    for i in 50602..50701 {
+    let mut nginx_conf = "".to_string();
+    for i in 50602..50801 {
         let replace_text = text.replace("-port", i.to_string().as_str());
         println!("{}", replace_text);
+        nginx_conf = format!("{0} \r\n {1}", nginx_conf, replace_text);
         // let str_text = format!("{0} \r\n {1}", text, replace_text);
         // text = str_text.as_str();
     }
+    let f = fs::File::create("n.conf").unwrap();
+    fs::write("n.conf", nginx_conf).unwrap();
 
     let orig = "21BNSIT209_PF3KXVHL***123456***7753-DE23-B948-FB0G";
     let encoded: String = general_purpose::STANDARD.encode(orig);
