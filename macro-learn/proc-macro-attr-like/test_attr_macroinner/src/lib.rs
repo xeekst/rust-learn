@@ -141,6 +141,8 @@ pub fn testprint(attr: TokenStream, item: TokenStream) -> TokenStream {
     let input_args = &input_fn.sig.inputs;
     let output = &input_fn.sig.output;
     let block = &input_fn.block;
+    let gen = &input_fn.sig.generics;
+    let gen_where = &input_fn.sig.generics.where_clause;
 
     let name = &testprint_attr.name;
     let times = &testprint_attr.times;
@@ -154,7 +156,9 @@ pub fn testprint(attr: TokenStream, item: TokenStream) -> TokenStream {
     };
 
     let output = quote! {
-        #visibility fn #fn_name(#input_args) #output {
+        #visibility fn #fn_name #gen(#input_args) #output 
+        #gen_where
+        {
             #print_code
         }
     };

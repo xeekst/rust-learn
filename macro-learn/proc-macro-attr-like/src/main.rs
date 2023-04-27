@@ -1,12 +1,17 @@
 use std::fmt::Debug;
-use test_attr_macroinner::{testprint, print_tokenstream};
+use test_attr_macroinner::{print_tokenstream, testprint};
 macro_rules! five_times {
-    ($x:expr) => (5 * $x);
+    ($x:expr) => {
+        5 * $x
+    };
 }
 
 #[testprint(name = "wow", times = 3)]
-fn fp() {
-    println!("just stringfy");
+fn fp<T: Debug>(v: T)
+where
+    T: Sized,
+{
+    println!("just stringfy:{:?}", v);
 }
 
 #[print_tokenstream]
@@ -23,9 +28,9 @@ where
 struct S;
 
 fn main() {
-    fp();
-    five_times!(2+2);
-    
+    fp("parammmmmmmm");
+    five_times!(2 + 2);
+
     let v = fn_v1("s".to_string(), 33, |i: i32| i + 1);
     println!("Hello, world!:{v}");
 }
