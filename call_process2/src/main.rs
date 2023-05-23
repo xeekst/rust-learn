@@ -95,6 +95,7 @@ fn main() {
     }
 
     if result == TRUE {
+        println!("create print loop:{}",process_info.dwProcessId);
         println!("子进程成功启动");
     } else {
         eprintln!("启动子进程失败，错误码: ");
