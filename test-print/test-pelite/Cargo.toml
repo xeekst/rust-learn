@@ -7,3 +7,6 @@ edition = "2021"
 
 [dependencies]
 pelite = "0.10.0"
+
+[build-dependencies]
+winres = "0.1.12"
