@@ -67,6 +67,14 @@ use winapi::um::winbase::CREATE_NEW_CONSOLE;
 
 fn main() {
     let command = r#"D:\codes\rust-learn\print_loop\target\debug\print_loop.exe"#; // 替换为实际的可执行文件名
+    let wkd = std::path::Path::new(command)
+        .parent()
+        .unwrap()
+        .to_str()
+        .unwrap();
+    println!("wkd:{}", wkd);
+
+    let workspace_cstring: Vec<u16> = wkd.encode_utf16().chain(Some(0)).collect();
 
     let command_line = format!("{}", command);
     let command_line_wide: Vec<u16> = command_line.encode_utf16().chain(Some(0)).collect();
@@ -78,6 +86,13 @@ fn main() {
 
     let mut process_info: PROCESS_INFORMATION = unsafe { std::mem::zeroed() };
 
+    let wkd = if wkd == "" {
+        ptr::null_mut()
+    } else {
+        workspace_cstring.as_ptr() as winapi::shared::ntdef::LPCWSTR
+    };
+    println!("wkd:{:?}", wkd);
+
     let result: BOOL;
     unsafe {
         result = CreateProcessW(
@@ -88,17 +103,17 @@ fn main() {
             FALSE,                                  // bInheritHandles
             CREATE_NEW_CONSOLE,                     // dwCreationFlags
             ptr::null_mut(),                        // lpEnvironment
-            ptr::null_mut(),                        // lpCurrentDirectory
+            wkd,                                    // lpCurrentDirectory
             &mut startup_info,                      // lpStartupInfo
             &mut process_info,                      // lpProcessInformation
         );
     }
 
     if result == TRUE {
-        println!("create print loop:{}",process_info.dwProcessId);
-        println!("子进程成功启动");
+        println!("create print loop:{}", process_info.dwProcessId);
+        println!("success");
     } else {
-        eprintln!("启动子进程失败，错误码: ");
+        eprintln!("error:{:?} ", result);
     }
     loop {}
 }
