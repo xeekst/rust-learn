@@ -7,3 +7,4 @@ edition = "2021"
 
 [dependencies]
 winapi = {version = "0.3", features = ["psapi", "shellapi","handleapi","tlhelp32","winuser","winnls","winbase"]}
+anyhow = "1.0.62"
