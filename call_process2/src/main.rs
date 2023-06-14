@@ -1,11 +1,14 @@
 use anyhow::{anyhow, Result};
+use std::ffi::OsStr;
 use std::io::Error;
+use std::iter::once;
 use std::path::PathBuf;
 use std::ptr;
 use winapi::shared::minwindef::{BOOL, DWORD, FALSE, LPVOID, TRUE};
 use winapi::shared::ntdef::{LPCWSTR, LPWSTR};
 use winapi::um::processthreadsapi::{CreateProcessW, PROCESS_INFORMATION, STARTUPINFOW};
 use winapi::um::winbase::CREATE_NEW_CONSOLE;
+use std::os::windows::ffi::OsStrExt;
 
 fn main() {
     let command = r#"D:\codes\rust-learn\print_loop\target\debug\print_loop.exe"#; // 替换为实际的可执行文件名
@@ -87,7 +90,9 @@ pub fn exec_bin_newwindow_nowait_by_win32(
         .encode_utf16()
         .chain(Some(0))
         .collect::<Vec<u16>>();
+    let wwide: Vec<u16> = OsStr::new(workspace_abs_dir).encode_wide().chain(once(0)).collect();
     let command_line = format!("{bin} {args}");
+    let cwide: Vec<u16> = OsStr::new(workspace_abs_dir).encode_wide().chain(once(0)).collect();
     println!("command_line:{command_line}");
     let command_line_wide = command_line
         .encode_utf16()
@@ -110,7 +115,7 @@ pub fn exec_bin_newwindow_nowait_by_win32(
             winapi::shared::minwindef::FALSE,       // bInheritHandles
             CREATE_NEW_CONSOLE,                     // dwCreationFlags
             ptr::null_mut(),                        // lpEnvironment
-            workspace_wide.as_ptr() as *mut u16,    // lpCurrentDirectory
+            wwide.as_ptr() as *mut u16,    // lpCurrentDirectory
             &mut startup_info,                      // lpStartupInfo
             &mut process_info,                      // lpProcessInformation
         );
