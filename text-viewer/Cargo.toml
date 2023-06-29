@@ -1,0 +1,14 @@
+[package]
+name = "text-viewer"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+fltk = "^1.3"
+fltk-theme = "0.4"
+lazy_static = "1.4.0"
+anyhow = "1.0.62"
+chrono = "0.4.19"
+fltk-richtext = "0.1.1"
