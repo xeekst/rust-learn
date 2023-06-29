@@ -106,10 +106,11 @@ pub fn exec_bin_newwindow_nowait_by_win32(
     let mut process_info: PROCESS_INFORMATION = unsafe { std::mem::zeroed() };
 
     let result: winapi::shared::minwindef::BOOL;
+    //https://learn.microsoft.com/en-us/windows/win32/api/processthreadsapi/nf-processthreadsapi-createprocessw
     unsafe {
         result = CreateProcessW(
             ptr::null(),                            // lpApplicationName
-            command_line_wide.as_ptr() as *mut u16, // lpCommandLine
+            command_line_wide.as_ptr() as *mut u16, // lpCommandLine 一定要 mut 类型，由于win32 api 的要求
             ptr::null_mut(),                        // lpProcessAttributes
             ptr::null_mut(),                        // lpThreadAttributes
             winapi::shared::minwindef::FALSE,       // bInheritHandles
