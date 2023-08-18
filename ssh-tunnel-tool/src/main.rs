@@ -31,6 +31,7 @@ use fltk::tree::*;
 use fltk::valuator::*;
 use fltk::widget::*;
 use fltk::window::*;
+use fltk_theme::{WidgetTheme, ThemeType};
 use ssh_tunnel::{check_ssh_tunnels, SSHTunnel};
 use ssh_tunnel_view::SSHTunnelView;
 
@@ -55,17 +56,19 @@ pub enum MsgType {
     ResizeMainWindow,
     StartTunnel,
     StopTunnel,
-    DeleteTunnel
+    DeleteTunnel,
 }
 
 fn main() {
     let app = app::App::default();
+    let widget_theme = WidgetTheme::new(ThemeType::AquaClassic);
+    widget_theme.apply();
     let mut view = SSHTunnelView::new();
     view.init();
-    view.basic_view
-        .scroll_view
-        .remove(&view.basic_view.tunnel_row);
-    view.add_ssh_tunnel_row();
+    // view.basic_view
+    //     .scroll_view
+    //     .remove(&view.basic_view.tunnel_row);
+    // view.add_ssh_tunnel_row();
 
     let mut map: HashMap<usize, SSHTunnel> = HashMap::new();
     let mut last_time = chrono::Local::now();

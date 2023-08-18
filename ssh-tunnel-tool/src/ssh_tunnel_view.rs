@@ -76,232 +76,232 @@ impl SSHTunnelView {
         });
     }
 
-    pub fn add_ssh_tunnel_row(&mut self) {
-        let y = if self.tunnel_rows.len() > 0 {
-            self.tunnel_rows.last().unwrap().2.y() + 45
-        } else {
-            self.basic_view.name_iuput.y()
-        };
+    // pub fn add_ssh_tunnel_row(&mut self) {
+    //     let y = if self.tunnel_rows.len() > 0 {
+    //         self.tunnel_rows.last().unwrap().2.y() + 45
+    //     } else {
+    //         self.basic_view.name_iuput.y()
+    //     };
 
-        let group_id = chrono::Local::now().timestamp_micros().to_string();
+    //     let group_id = chrono::Local::now().timestamp_micros().to_string();
 
-        let mut tunnel = Group::new(
-            self.basic_view.tunnel_row.x(),
-            if self.tunnel_rows.len() > 0 {
-                self.tunnel_rows.last().unwrap().0.y() + 45
-            } else {
-                self.basic_view.tunnel_row.y()
-            },
-            self.basic_view.tunnel_row.w(),
-            self.basic_view.tunnel_row.h(),
-            None,
-        );
-        tunnel.set_label(&group_id);
-        tunnel.end();
-        tunnel.set_label_color(self.basic_view.tunnel_row.label_color());
-        tunnel.set_color(self.basic_view.tunnel_row.color());
-        tunnel.set_align(unsafe { std::mem::transmute(0) });
-        tunnel.set_frame(FrameType::BorderBox);
-        self.basic_view.scroll_view.add(&tunnel);
+    //     let mut tunnel = Group::new(
+    //         self.basic_view.tunnel_row.x(),
+    //         if self.tunnel_rows.len() > 0 {
+    //             self.tunnel_rows.last().unwrap().0.y() + 45
+    //         } else {
+    //             self.basic_view.tunnel_row.y()
+    //         },
+    //         self.basic_view.tunnel_row.w(),
+    //         self.basic_view.tunnel_row.h(),
+    //         None,
+    //     );
+    //     tunnel.set_label(&group_id);
+    //     tunnel.end();
+    //     tunnel.set_label_color(self.basic_view.tunnel_row.label_color());
+    //     tunnel.set_color(self.basic_view.tunnel_row.color());
+    //     tunnel.set_align(unsafe { std::mem::transmute(0) });
+    //     tunnel.set_frame(FrameType::BorderBox);
+    //     self.basic_view.scroll_view.add(&tunnel);
 
-        let mut index_txt = Frame::new(
-            self.basic_view.index_txt.x(),
-            y,
-            self.basic_view.index_txt.w(),
-            self.basic_view.index_txt.h(),
-            "0",
-        );
-        index_txt.set_label(&format!("{}", self.tunnel_rows.len()));
-        index_txt.set_color(Color::by_index(46));
-        index_txt.set_label_font(Font::by_index(1));
-        index_txt.set_label_color(Color::by_index(229));
-        tunnel.add(&index_txt);
+    //     let mut index_txt = Frame::new(
+    //         self.basic_view.index_txt.x(),
+    //         y,
+    //         self.basic_view.index_txt.w(),
+    //         self.basic_view.index_txt.h(),
+    //         "0",
+    //     );
+    //     index_txt.set_label(&format!("{}", self.tunnel_rows.len()));
+    //     index_txt.set_color(Color::by_index(46));
+    //     index_txt.set_label_font(Font::by_index(1));
+    //     index_txt.set_label_color(Color::by_index(229));
+    //     tunnel.add(&index_txt);
 
-        let mut forward_type_choice = Choice::new(
-            self.basic_view.forward_type_choice.x(),
-            y,
-            self.basic_view.forward_type_choice.w(),
-            self.basic_view.forward_type_choice.h(),
-            "menu",
-        );
-        forward_type_choice.set_label("");
-        forward_type_choice.add_choice("Local");
-        forward_type_choice.add_choice("Remote");
-        forward_type_choice.end();
-        tunnel.add(&forward_type_choice);
+    //     let mut forward_type_choice = Choice::new(
+    //         self.basic_view.forward_type_choice.x(),
+    //         y,
+    //         self.basic_view.forward_type_choice.w(),
+    //         self.basic_view.forward_type_choice.h(),
+    //         "menu",
+    //     );
+    //     forward_type_choice.set_label("");
+    //     forward_type_choice.add_choice("Local");
+    //     forward_type_choice.add_choice("Remote");
+    //     forward_type_choice.end();
+    //     tunnel.add(&forward_type_choice);
 
-        let mut start_btn = Button::new(
-            self.basic_view.start_btn.x(),
-            y - 2,
-            self.basic_view.start_btn.w(),
-            self.basic_view.start_btn.h(),
-            None,
-        );
-        start_btn.set_image(Some(
-            SharedImage::load("asset\\play.png")
-                .expect("Could not find image: ..\\asset\\play.png"),
-        ));
-        start_btn.set_deimage(Some(
-            SharedImage::load("asset\\inactive_play.png")
-                .expect("Could not find image: ..\\asset\\inactive_play.png"),
-        ));
-        start_btn.set_frame(FrameType::FlatBox);
-        start_btn.set_color(Color::by_index(255));
-        start_btn.set_align(unsafe { std::mem::transmute(16) });
-        start_btn.set_tooltip("start this ssh tunnel.");
-        tunnel.add(&start_btn);
-        let mut stop_btn = Button::new(
-            self.basic_view.stop_btn.x(),
-            y - 2,
-            self.basic_view.stop_btn.width(),
-            self.basic_view.stop_btn.h(),
-            None,
-        );
-        stop_btn.set_image(Some(
-            SharedImage::load("asset\\stop.png")
-                .expect("Could not find image: ..\\asset\\stop.png"),
-        ));
-        stop_btn.set_deimage(Some(
-            SharedImage::load("asset\\inactive_stop.png")
-                .expect("Could not find image: ..\\asset\\inactive_stop.png"),
-        ));
-        stop_btn.set_frame(FrameType::FlatBox);
-        stop_btn.set_color(Color::by_index(255));
-        stop_btn.set_tooltip("stop this ssh tunnel.");
-        stop_btn.set_align(unsafe { std::mem::transmute(16) });
-        stop_btn.deactivate();
-        tunnel.add(&stop_btn);
+    //     let mut start_btn = Button::new(
+    //         self.basic_view.start_btn.x(),
+    //         y - 2,
+    //         self.basic_view.start_btn.w(),
+    //         self.basic_view.start_btn.h(),
+    //         None,
+    //     );
+    //     start_btn.set_image(Some(
+    //         SharedImage::load("asset\\play.png")
+    //             .expect("Could not find image: ..\\asset\\play.png"),
+    //     ));
+    //     start_btn.set_deimage(Some(
+    //         SharedImage::load("asset\\inactive_play.png")
+    //             .expect("Could not find image: ..\\asset\\inactive_play.png"),
+    //     ));
+    //     start_btn.set_frame(FrameType::FlatBox);
+    //     start_btn.set_color(Color::by_index(255));
+    //     start_btn.set_align(unsafe { std::mem::transmute(16) });
+    //     start_btn.set_tooltip("start this ssh tunnel.");
+    //     tunnel.add(&start_btn);
+    //     let mut stop_btn = Button::new(
+    //         self.basic_view.stop_btn.x(),
+    //         y - 2,
+    //         self.basic_view.stop_btn.width(),
+    //         self.basic_view.stop_btn.h(),
+    //         None,
+    //     );
+    //     stop_btn.set_image(Some(
+    //         SharedImage::load("asset\\stop.png")
+    //             .expect("Could not find image: ..\\asset\\stop.png"),
+    //     ));
+    //     stop_btn.set_deimage(Some(
+    //         SharedImage::load("asset\\inactive_stop.png")
+    //             .expect("Could not find image: ..\\asset\\inactive_stop.png"),
+    //     ));
+    //     stop_btn.set_frame(FrameType::FlatBox);
+    //     stop_btn.set_color(Color::by_index(255));
+    //     stop_btn.set_tooltip("stop this ssh tunnel.");
+    //     stop_btn.set_align(unsafe { std::mem::transmute(16) });
+    //     stop_btn.deactivate();
+    //     tunnel.add(&stop_btn);
 
-        let mut del_btn = Button::new(
-            self.basic_view.del_btn.x(),
-            y - 2,
-            self.basic_view.del_btn.width(),
-            self.basic_view.del_btn.h(),
-            None,
-        );
-        del_btn.set_image(Some(
-            SharedImage::load("asset\\del.png").expect("Could not find image: asset\\del.png"),
-        ));
-        del_btn.set_deimage(Some(
-            SharedImage::load("asset\\inactive_del.png")
-                .expect("Could not find image: ..\\asset\\inactive_del.png"),
-        ));
-        del_btn.set_frame(FrameType::FlatBox);
-        del_btn.set_color(Color::by_index(255));
-        del_btn.set_align(unsafe { std::mem::transmute(16) });
-        del_btn.activate();
-        tunnel.add(&del_btn);
+    //     let mut del_btn = Button::new(
+    //         self.basic_view.del_btn.x(),
+    //         y - 2,
+    //         self.basic_view.del_btn.width(),
+    //         self.basic_view.del_btn.h(),
+    //         None,
+    //     );
+    //     del_btn.set_image(Some(
+    //         SharedImage::load("asset\\del.png").expect("Could not find image: asset\\del.png"),
+    //     ));
+    //     del_btn.set_deimage(Some(
+    //         SharedImage::load("asset\\inactive_del.png")
+    //             .expect("Could not find image: ..\\asset\\inactive_del.png"),
+    //     ));
+    //     del_btn.set_frame(FrameType::FlatBox);
+    //     del_btn.set_color(Color::by_index(255));
+    //     del_btn.set_align(unsafe { std::mem::transmute(16) });
+    //     del_btn.activate();
+    //     tunnel.add(&del_btn);
 
-        let mut name_iuput = Input::new(
-            self.basic_view.name_iuput.x(),
-            y,
-            self.basic_view.name_iuput.w(),
-            self.basic_view.name_iuput.h(),
-            None,
-        );
-        name_iuput.set_label_type(LabelType::None);
-        tunnel.add(&name_iuput);
-        let mut forward_port_iuput = IntInput::new(
-            self.basic_view.forward_port_iuput.x(),
-            y,
-            self.basic_view.forward_port_iuput.w(),
-            self.basic_view.forward_port_iuput.h(),
-            None,
-        );
-        forward_port_iuput.set_label_type(LabelType::None);
-        tunnel.add(&forward_port_iuput);
-        let mut dst_server_port_input = Input::new(
-            self.basic_view.dst_server_port_input.x(),
-            y,
-            self.basic_view.dst_server_port_input.w(),
-            self.basic_view.dst_server_port_input.h(),
-            None,
-        );
-        dst_server_port_input.set_label_type(LabelType::None);
-        tunnel.add(&dst_server_port_input);
-        let mut ssh_username_iuput = Input::new(
-            self.basic_view.ssh_username_iuput.x(),
-            y,
-            self.basic_view.ssh_username_iuput.w(),
-            self.basic_view.ssh_username_iuput.h(),
-            None,
-        );
-        ssh_username_iuput.set_label_type(LabelType::None);
-        tunnel.add(&ssh_username_iuput);
-        let mut ssh_server_ip_iuput = Input::new(
-            self.basic_view.ssh_server_ip_iuput.x(),
-            y,
-            self.basic_view.ssh_server_ip_iuput.w(),
-            self.basic_view.ssh_server_ip_iuput.h(),
-            None,
-        );
-        ssh_server_ip_iuput.set_label_type(LabelType::None);
-        tunnel.add(&ssh_server_ip_iuput);
-        let mut ssh_port_iuput = IntInput::new(
-            self.basic_view.ssh_port_iuput.x(),
-            y,
-            self.basic_view.ssh_port_iuput.w(),
-            self.basic_view.ssh_port_iuput.h(),
-            None,
-        );
-        ssh_port_iuput.set_label_type(LabelType::None);
-        ssh_port_iuput.set_value("22");
-        tunnel.add(&ssh_port_iuput);
-        let mut pwd_input = SecretInput::new(
-            self.basic_view.pwd_input.x(),
-            y,
-            self.basic_view.pwd_input.w(),
-            self.basic_view.pwd_input.h(),
-            None,
-        );
-        pwd_input.set_label_type(LabelType::None);
-        tunnel.add(&pwd_input);
-        let mut fl2rust_widget_10 = Frame::new(self.basic_view.at_box.x(), y, 20, 20, "@@");
-        tunnel.add(&fl2rust_widget_10);
-        let mut fl2rust_widget_11 = Frame::new(self.basic_view.box2.x(), y, 10, 20, ":");
-        fl2rust_widget_11.set_label_font(Font::by_index(1));
-        tunnel.add(&fl2rust_widget_11);
+    //     let mut name_iuput = Input::new(
+    //         self.basic_view.name_iuput.x(),
+    //         y,
+    //         self.basic_view.name_iuput.w(),
+    //         self.basic_view.name_iuput.h(),
+    //         None,
+    //     );
+    //     name_iuput.set_label_type(LabelType::None);
+    //     tunnel.add(&name_iuput);
+    //     let mut forward_port_iuput = IntInput::new(
+    //         self.basic_view.forward_port_iuput.x(),
+    //         y,
+    //         self.basic_view.forward_port_iuput.w(),
+    //         self.basic_view.forward_port_iuput.h(),
+    //         None,
+    //     );
+    //     forward_port_iuput.set_label_type(LabelType::None);
+    //     tunnel.add(&forward_port_iuput);
+    //     let mut dst_server_port_input = Input::new(
+    //         self.basic_view.dst_server_port_input.x(),
+    //         y,
+    //         self.basic_view.dst_server_port_input.w(),
+    //         self.basic_view.dst_server_port_input.h(),
+    //         None,
+    //     );
+    //     dst_server_port_input.set_label_type(LabelType::None);
+    //     tunnel.add(&dst_server_port_input);
+    //     let mut ssh_username_iuput = Input::new(
+    //         self.basic_view.ssh_username_iuput.x(),
+    //         y,
+    //         self.basic_view.ssh_username_iuput.w(),
+    //         self.basic_view.ssh_username_iuput.h(),
+    //         None,
+    //     );
+    //     ssh_username_iuput.set_label_type(LabelType::None);
+    //     tunnel.add(&ssh_username_iuput);
+    //     let mut ssh_server_ip_iuput = Input::new(
+    //         self.basic_view.ssh_server_ip_iuput.x(),
+    //         y,
+    //         self.basic_view.ssh_server_ip_iuput.w(),
+    //         self.basic_view.ssh_server_ip_iuput.h(),
+    //         None,
+    //     );
+    //     ssh_server_ip_iuput.set_label_type(LabelType::None);
+    //     tunnel.add(&ssh_server_ip_iuput);
+    //     let mut ssh_port_iuput = IntInput::new(
+    //         self.basic_view.ssh_port_iuput.x(),
+    //         y,
+    //         self.basic_view.ssh_port_iuput.w(),
+    //         self.basic_view.ssh_port_iuput.h(),
+    //         None,
+    //     );
+    //     ssh_port_iuput.set_label_type(LabelType::None);
+    //     ssh_port_iuput.set_value("22");
+    //     tunnel.add(&ssh_port_iuput);
+    //     let mut pwd_input = SecretInput::new(
+    //         self.basic_view.pwd_input.x(),
+    //         y,
+    //         self.basic_view.pwd_input.w(),
+    //         self.basic_view.pwd_input.h(),
+    //         None,
+    //     );
+    //     pwd_input.set_label_type(LabelType::None);
+    //     tunnel.add(&pwd_input);
+    //     let mut fl2rust_widget_10 = Frame::new(self.basic_view.at_box.x(), y, 20, 20, "@@");
+    //     tunnel.add(&fl2rust_widget_10);
+    //     let mut fl2rust_widget_11 = Frame::new(self.basic_view.box2.x(), y, 10, 20, ":");
+    //     fl2rust_widget_11.set_label_font(Font::by_index(1));
+    //     tunnel.add(&fl2rust_widget_11);
 
-        let g_id = group_id.clone();
-        start_btn.set_callback(move |b| {
-            Self::send(UiMessage {
-                msg_type: MsgType::StartTunnel,
-                msg: g_id.to_owned(),
-            })
-        });
+    //     let g_id = group_id.clone();
+    //     start_btn.set_callback(move |b| {
+    //         Self::send(UiMessage {
+    //             msg_type: MsgType::StartTunnel,
+    //             msg: g_id.to_owned(),
+    //         })
+    //     });
 
-        let g_id = group_id.clone();
-        stop_btn.set_callback(move |_| {
-            Self::send(UiMessage {
-                msg_type: MsgType::StopTunnel,
-                msg: g_id.to_owned(),
-            })
-        });
+    //     let g_id = group_id.clone();
+    //     stop_btn.set_callback(move |_| {
+    //         Self::send(UiMessage {
+    //             msg_type: MsgType::StopTunnel,
+    //             msg: g_id.to_owned(),
+    //         })
+    //     });
 
-        let g_id = group_id.clone();
-        del_btn.set_callback(move |_| {
-            Self::send(UiMessage {
-                msg_type: MsgType::DeleteTunnel,
-                msg: g_id.to_owned(),
-            })
-        });
+    //     let g_id = group_id.clone();
+    //     del_btn.set_callback(move |_| {
+    //         Self::send(UiMessage {
+    //             msg_type: MsgType::DeleteTunnel,
+    //             msg: g_id.to_owned(),
+    //         })
+    //     });
 
-        self.tunnel_rows.push((
-            tunnel,
-            index_txt,
-            name_iuput,
-            forward_type_choice,
-            start_btn,
-            stop_btn,
-            forward_port_iuput,
-            dst_server_port_input,
-            ssh_username_iuput,
-            ssh_server_ip_iuput,
-            ssh_port_iuput,
-            pwd_input,
-            del_btn,
-        ));
-    }
+    //     self.tunnel_rows.push((
+    //         tunnel,
+    //         index_txt,
+    //         name_iuput,
+    //         forward_type_choice,
+    //         start_btn,
+    //         stop_btn,
+    //         forward_port_iuput,
+    //         dst_server_port_input,
+    //         ssh_username_iuput,
+    //         ssh_server_ip_iuput,
+    //         ssh_port_iuput,
+    //         pwd_input,
+    //         del_btn,
+    //     ));
+    // }
 
     pub fn delete_ssh_tunnel_row(&mut self, index: usize) {
         println!("index:{index}");
@@ -425,7 +425,7 @@ pub fn handle_view_msg(
     match ui_msg.msg_type {
         MsgType::INFO => todo!(),
         MsgType::ERROR => todo!(),
-        MsgType::AddTunnelRow => view.add_ssh_tunnel_row(),
+        MsgType::AddTunnelRow =>  todo!(),
         MsgType::StartTunnel => {
             println!("recv message :{:?}", ui_msg);
             let index = view.get_cur_index(&ui_msg.msg);
