@@ -38,26 +38,37 @@ pub struct BasicView {
     pub ssh_server_ip_iuput: Input,
     pub ssh_port_iuput: IntInput,
     pub pwd_input: SecretInput,
+    pub tunnel_row_remote: Group,
+    pub forward_type_choice_remote: Choice,
+    pub index_txt_remote: Frame,
+    pub start_btn_remote: Button,
+    pub stop_btn_remote: Button,
+    pub del_btn_remote: Button,
+    pub name_iuput_remote: Input,
+    pub local_host_input: Input,
+    pub forward_port_iuput_remote: IntInput,
+    pub local_port_input: Input,
     pub menu: MenuBar,
 }
 
 
 impl BasicView {
     pub fn make_window() -> Self {
-	let mut main_window = Window::new(416, 217, 960, 300, None);
+	let mut main_window = Window::new(363, 175, 960, 340, None);
 	main_window.end();
-	main_window.set_color(Color::by_index(54));
+	main_window.set_color(Color::by_index(7));
 	main_window.size_range(960, 200, 960, 900);
 	main_window.show();
-	let mut scroll_view = Scroll::new(0, 50, 960, 250, None);
+	let mut scroll_view = Scroll::new(0, 50, 960, 290, None);
 	scroll_view.end();
-	scroll_view.set_color(Color::by_index(54));
+	scroll_view.set_frame(FrameType::UpBox);
+	scroll_view.set_color(Color::by_index(7));
 	scroll_view.set_label_font(Font::by_index(1));
 	scroll_view.set_align(unsafe {std::mem::transmute(0)});
 	main_window.add(&scroll_view);
-	let mut tunnel_row = Group::new(15, 54, 913, 121, "g_id");
+	let mut tunnel_row = Group::new(15, 54, 913, 130, "g_id");
 	tunnel_row.end();
-	tunnel_row.set_frame(FrameType::BorderBox);
+	tunnel_row.set_frame(FrameType::UpBox);
 	tunnel_row.set_color(Color::by_index(54));
 	tunnel_row.set_label_color(Color::by_index(54));
 	tunnel_row.set_align(unsafe {std::mem::transmute(0)});
@@ -77,12 +88,14 @@ impl BasicView {
 	index_txt.set_label_color(Color::by_index(229));
 	tunnel_row.add(&index_txt);
 	let mut start_btn = Button::new(795, 61, 24, 24, None);
+	start_btn.set_tooltip("start tunnel");
 	start_btn.set_image(Some(SharedImage::load("asset\\play.png").expect("Could not find image: asset\\play.png")));
 	start_btn.set_frame(FrameType::FlatBox);
 	start_btn.set_color(Color::by_index(255));
 	start_btn.set_align(unsafe {std::mem::transmute(16)});
 	tunnel_row.add(&start_btn);
 	let mut stop_btn = Button::new(835, 61, 24, 24, None);
+	stop_btn.set_tooltip("stop tunnel");
 	stop_btn.set_image(Some(SharedImage::load("asset\\stop.png").expect("Could not find image: asset\\stop.png")));
 	stop_btn.set_frame(FrameType::FlatBox);
 	stop_btn.set_color(Color::by_index(255));
@@ -90,6 +103,7 @@ impl BasicView {
 	stop_btn.deactivate();
 	tunnel_row.add(&stop_btn);
 	let mut del_btn = Button::new(875, 61, 24, 24, None);
+	del_btn.set_tooltip("delete this config");
 	del_btn.set_image(Some(SharedImage::load("asset\\del.png").expect("Could not find image: asset\\del.png")));
 	del_btn.set_frame(FrameType::FlatBox);
 	del_btn.set_color(Color::by_index(255));
@@ -99,7 +113,7 @@ impl BasicView {
 	let mut name_iuput = Input::new(55, 60, 480, 24, None);
 	name_iuput.set_label_type(LabelType::None);
 	tunnel_row.add(&name_iuput);
-	let mut fl2rust_widget_1 = Frame::new(155, 125, 145, 35, "local listen addr");
+	let mut fl2rust_widget_1 = Frame::new(140, 125, 145, 35, "local listen addr");
 	fl2rust_widget_1.set_frame(FrameType::UpBox);
 	fl2rust_widget_1.set_label_type(LabelType::Embossed);
 	fl2rust_widget_1.set_label_color(Color::by_index(229));
@@ -117,48 +131,190 @@ impl BasicView {
 	let mut fl2rust_widget_3 = Frame::new(50, 120, 40, 40, "💻");
 	fl2rust_widget_3.set_label_size(40);
 	tunnel_row.add(&fl2rust_widget_3);
-	let mut forward_port_iuput = IntInput::new(215, 131, 70, 24, "0.0.0.0:");
+	let mut fl2rust_widget_4 = Frame::new(85, 140, 55, 10, "🠖❯");
+	fl2rust_widget_4.set_frame(FrameType::FlatBox);
+	fl2rust_widget_4.set_color(Color::by_index(53));
+	fl2rust_widget_4.set_label_type(LabelType::Engraved);
+	fl2rust_widget_4.set_label_font(Font::by_index(1));
+	fl2rust_widget_4.set_label_size(15);
+	fl2rust_widget_4.set_label_color(Color::by_index(229));
+	tunnel_row.add(&fl2rust_widget_4);
+	let mut fl2rust_widget_5 = Frame::new(285, 140, 90, 10, "🠖❯");
+	fl2rust_widget_5.set_frame(FrameType::FlatBox);
+	fl2rust_widget_5.set_color(Color::by_index(53));
+	fl2rust_widget_5.set_label_type(LabelType::Engraved);
+	fl2rust_widget_5.set_label_font(Font::by_index(1));
+	fl2rust_widget_5.set_label_size(15);
+	fl2rust_widget_5.set_label_color(Color::by_index(229));
+	tunnel_row.add(&fl2rust_widget_5);
+	let mut fl2rust_widget_6 = Frame::new(665, 140, 45, 10, "🠖❯");
+	fl2rust_widget_6.set_frame(FrameType::FlatBox);
+	fl2rust_widget_6.set_color(Color::by_index(53));
+	fl2rust_widget_6.set_label_type(LabelType::Engraved);
+	fl2rust_widget_6.set_label_font(Font::by_index(1));
+	fl2rust_widget_6.set_label_size(15);
+	fl2rust_widget_6.set_label_color(Color::by_index(229));
+	tunnel_row.add(&fl2rust_widget_6);
+	let mut forward_port_iuput = IntInput::new(200, 131, 70, 24, "0.0.0.0:");
 	tunnel_row.add(&forward_port_iuput);
 	let mut remote_port_input = Input::new(840, 131, 50, 24, ":");
 	tunnel_row.add(&remote_port_input);
-	let mut fl2rust_widget_4 = Frame::new(360, 113, 290, 60, "SSH Server");
-	fl2rust_widget_4.set_frame(FrameType::UpBox);
-	fl2rust_widget_4.set_label_type(LabelType::Embossed);
-	fl2rust_widget_4.set_label_color(Color::by_index(229));
-	fl2rust_widget_4.set_align(unsafe {std::mem::transmute(1)});
-	tunnel_row.add(&fl2rust_widget_4);
-	let mut ssh_username_iuput = Input::new(410, 145, 100, 24, "user:");
+	let mut fl2rust_widget_7 = Frame::new(375, 113, 290, 60, "SSH Server");
+	fl2rust_widget_7.set_frame(FrameType::UpBox);
+	fl2rust_widget_7.set_label_type(LabelType::Embossed);
+	fl2rust_widget_7.set_label_color(Color::by_index(229));
+	fl2rust_widget_7.set_align(unsafe {std::mem::transmute(1)});
+	tunnel_row.add(&fl2rust_widget_7);
+	let mut fl2rust_widget_8 = Frame::new(350, 112, 8, 70, "firewall");
+	fl2rust_widget_8.set_frame(FrameType::FlatBox);
+	fl2rust_widget_8.set_color(Color::by_index(92));
+	fl2rust_widget_8.set_label_type(LabelType::Embossed);
+	fl2rust_widget_8.set_label_color(Color::by_index(90));
+	fl2rust_widget_8.set_align(unsafe {std::mem::transmute(1)});
+	tunnel_row.add(&fl2rust_widget_8);
+	let mut ssh_username_iuput = Input::new(425, 145, 100, 24, "user:");
 	tunnel_row.add(&ssh_username_iuput);
-	let mut ssh_server_ip_iuput = Input::new(410, 117, 100, 24, "host:");
+	let mut ssh_server_ip_iuput = Input::new(425, 117, 100, 24, "host:");
 	tunnel_row.add(&ssh_server_ip_iuput);
-	let mut ssh_port_iuput = IntInput::new(550, 117, 85, 24, "port:");
+	let mut ssh_port_iuput = IntInput::new(565, 117, 85, 24, "port:");
 	tunnel_row.add(&ssh_port_iuput);
-	let mut pwd_input = SecretInput::new(550, 145, 85, 24, "pwd:");
+	let mut pwd_input = SecretInput::new(565, 145, 85, 24, "pwd:");
 	tunnel_row.add(&pwd_input);
+	let mut tunnel_row_remote = Group::new(15, 194, 913, 130, "g_id");
+	tunnel_row_remote.end();
+	tunnel_row_remote.set_frame(FrameType::UpBox);
+	tunnel_row_remote.set_color(Color::by_index(54));
+	tunnel_row_remote.set_label_color(Color::by_index(54));
+	tunnel_row_remote.set_align(unsafe {std::mem::transmute(0)});
+	scroll_view.add(&tunnel_row_remote);
+	let mut fl2rust_widget_9 = Frame::new(15, 233, 913, 3, None);
+	fl2rust_widget_9.set_frame(FrameType::FlatBox);
+	fl2rust_widget_9.set_color(Color::by_index(38));
+	fl2rust_widget_9.set_label_type(LabelType::None);
+	tunnel_row_remote.add(&fl2rust_widget_9);
+	let mut forward_type_choice_remote = Choice::new(585, 200, 75, 24, None);
+	forward_type_choice_remote.end();
+	forward_type_choice_remote.set_down_frame(FrameType::BorderBox);
+	tunnel_row_remote.add(&forward_type_choice_remote);
+	let mut index_txt_remote = Frame::new(28, 202, 20, 20, "1");
+	index_txt_remote.set_color(Color::by_index(46));
+	index_txt_remote.set_label_font(Font::by_index(1));
+	index_txt_remote.set_label_color(Color::by_index(229));
+	tunnel_row_remote.add(&index_txt_remote);
+	let mut start_btn_remote = Button::new(795, 201, 24, 24, None);
+	start_btn_remote.set_image(Some(SharedImage::load("asset\\play.png").expect("Could not find image: asset\\play.png")));
+	start_btn_remote.set_frame(FrameType::FlatBox);
+	start_btn_remote.set_color(Color::by_index(255));
+	start_btn_remote.set_align(unsafe {std::mem::transmute(16)});
+	tunnel_row_remote.add(&start_btn_remote);
+	let mut stop_btn_remote = Button::new(835, 201, 24, 24, None);
+	stop_btn_remote.set_image(Some(SharedImage::load("asset\\stop.png").expect("Could not find image: asset\\stop.png")));
+	stop_btn_remote.set_frame(FrameType::FlatBox);
+	stop_btn_remote.set_color(Color::by_index(255));
+	stop_btn_remote.set_align(unsafe {std::mem::transmute(16)});
+	stop_btn_remote.deactivate();
+	tunnel_row_remote.add(&stop_btn_remote);
+	let mut del_btn_remote = Button::new(875, 201, 24, 24, None);
+	del_btn_remote.set_image(Some(SharedImage::load("asset\\del.png").expect("Could not find image: asset\\del.png")));
+	del_btn_remote.set_frame(FrameType::FlatBox);
+	del_btn_remote.set_color(Color::by_index(255));
+	del_btn_remote.set_align(unsafe {std::mem::transmute(16)});
+	del_btn_remote.deactivate();
+	tunnel_row_remote.add(&del_btn_remote);
+	let mut name_iuput_remote = Input::new(55, 200, 480, 24, None);
+	name_iuput_remote.set_label_type(LabelType::None);
+	tunnel_row_remote.add(&name_iuput_remote);
+	let mut fl2rust_widget_10 = Frame::new(755, 265, 145, 35, "remote listen addr");
+	fl2rust_widget_10.set_frame(FrameType::UpBox);
+	fl2rust_widget_10.set_label_type(LabelType::Embossed);
+	fl2rust_widget_10.set_label_color(Color::by_index(229));
+	fl2rust_widget_10.set_align(unsafe {std::mem::transmute(1)});
+	tunnel_row_remote.add(&fl2rust_widget_10);
+	let mut fl2rust_widget_11 = Frame::new(140, 265, 190, 35, "local addr");
+	fl2rust_widget_11.set_frame(FrameType::UpBox);
+	fl2rust_widget_11.set_label_type(LabelType::Embossed);
+	fl2rust_widget_11.set_label_color(Color::by_index(229));
+	fl2rust_widget_11.set_align(unsafe {std::mem::transmute(1)});
+	tunnel_row_remote.add(&fl2rust_widget_11);
+	let mut local_host_input = Input::new(148, 271, 110, 24, None);
+	local_host_input.set_label_type(LabelType::None);
+	tunnel_row_remote.add(&local_host_input);
+	let mut fl2rust_widget_12 = Frame::new(50, 260, 40, 40, "💻");
+	fl2rust_widget_12.set_label_size(40);
+	tunnel_row_remote.add(&fl2rust_widget_12);
+	let mut fl2rust_widget_13 = Frame::new(85, 280, 55, 10, "❮🠔");
+	fl2rust_widget_13.set_frame(FrameType::FlatBox);
+	fl2rust_widget_13.set_color(Color::by_index(53));
+	fl2rust_widget_13.set_label_type(LabelType::Engraved);
+	fl2rust_widget_13.set_label_font(Font::by_index(1));
+	fl2rust_widget_13.set_label_size(15);
+	fl2rust_widget_13.set_label_color(Color::by_index(229));
+	tunnel_row_remote.add(&fl2rust_widget_13);
+	let mut fl2rust_widget_14 = Frame::new(330, 280, 50, 10, "❮🠔");
+	fl2rust_widget_14.set_frame(FrameType::FlatBox);
+	fl2rust_widget_14.set_color(Color::by_index(53));
+	fl2rust_widget_14.set_label_type(LabelType::Engraved);
+	fl2rust_widget_14.set_label_font(Font::by_index(1));
+	fl2rust_widget_14.set_label_size(15);
+	fl2rust_widget_14.set_label_color(Color::by_index(229));
+	tunnel_row_remote.add(&fl2rust_widget_14);
+	let mut fl2rust_widget_15 = Frame::new(665, 280, 90, 10, "❮🠔");
+	fl2rust_widget_15.set_frame(FrameType::FlatBox);
+	fl2rust_widget_15.set_color(Color::by_index(53));
+	fl2rust_widget_15.set_label_type(LabelType::Engraved);
+	fl2rust_widget_15.set_label_font(Font::by_index(1));
+	fl2rust_widget_15.set_label_size(15);
+	fl2rust_widget_15.set_label_color(Color::by_index(229));
+	tunnel_row_remote.add(&fl2rust_widget_15);
+	let mut forward_port_iuput_remote = IntInput::new(815, 271, 70, 24, "0.0.0.0:");
+	tunnel_row_remote.add(&forward_port_iuput_remote);
+	let mut local_port_input = Input::new(270, 271, 50, 24, ":");
+	tunnel_row_remote.add(&local_port_input);
+	let mut fl2rust_widget_16 = Frame::new(375, 253, 290, 60, "SSH Server");
+	fl2rust_widget_16.set_frame(FrameType::UpBox);
+	fl2rust_widget_16.set_label_type(LabelType::Embossed);
+	fl2rust_widget_16.set_label_color(Color::by_index(229));
+	fl2rust_widget_16.set_align(unsafe {std::mem::transmute(1)});
+	tunnel_row_remote.add(&fl2rust_widget_16);
+	let mut fl2rust_widget_17 = Input::new(425, 285, 100, 24, "user:");
+	tunnel_row_remote.add(&fl2rust_widget_17);
+	let mut fl2rust_widget_18 = Input::new(425, 257, 100, 24, "host:");
+	tunnel_row_remote.add(&fl2rust_widget_18);
+	let mut fl2rust_widget_19 = IntInput::new(565, 257, 85, 24, "port:");
+	tunnel_row_remote.add(&fl2rust_widget_19);
+	let mut fl2rust_widget_20 = SecretInput::new(565, 285, 85, 24, "pwd:");
+	tunnel_row_remote.add(&fl2rust_widget_20);
+	let mut fl2rust_widget_21 = Frame::new(360, 250, 8, 70, "firewall");
+	fl2rust_widget_21.set_frame(FrameType::FlatBox);
+	fl2rust_widget_21.set_color(Color::by_index(92));
+	fl2rust_widget_21.set_label_type(LabelType::Embossed);
+	fl2rust_widget_21.set_label_color(Color::by_index(90));
+	fl2rust_widget_21.set_align(unsafe {std::mem::transmute(1)});
+	tunnel_row_remote.add(&fl2rust_widget_21);
 	let mut menu = MenuBar::new(0, 0, 960, 20, None);
 	menu.end();
 	menu.set_color(Color::by_index(46));
 	main_window.add(&menu);
 	menu.add("+", Shortcut::None, MenuFlag::Normal, |_| {});
 	menu.add("about", Shortcut::None, MenuFlag::Normal, |_| {});
-	let mut fl2rust_widget_6 = Group::new(0, 20, 944, 30, None);
-	fl2rust_widget_6.end();
-	fl2rust_widget_6.set_frame(FrameType::UpBox);
-	fl2rust_widget_6.set_color(Color::by_index(46));
-	main_window.add(&fl2rust_widget_6);
-	let mut fl2rust_widget_7 = Frame::new(75, 25, 45, 20, "Name");
-	fl2rust_widget_6.add(&fl2rust_widget_7);
-	let mut fl2rust_widget_8 = Frame::new(600, 25, 40, 20, "Type");
-	fl2rust_widget_6.add(&fl2rust_widget_8);
-	let mut fl2rust_widget_9 = Frame::new(785, 25, 40, 20, "Start");
-	fl2rust_widget_6.add(&fl2rust_widget_9);
-	let mut fl2rust_widget_10 = Frame::new(825, 25, 40, 20, "Stop");
-	fl2rust_widget_6.add(&fl2rust_widget_10);
-	let mut fl2rust_widget_11 = Frame::new(25, 25, 30, 20, "No.");
-	fl2rust_widget_6.add(&fl2rust_widget_11);
-	let mut fl2rust_widget_12 = Frame::new(872, 25, 28, 20, "Del");
-	fl2rust_widget_6.add(&fl2rust_widget_12);
-	Self { main_window, scroll_view, tunnel_row, forward_type_choice, index_txt, start_btn, stop_btn, del_btn, name_iuput, remote_host_input, forward_port_iuput, remote_port_input, ssh_username_iuput, ssh_server_ip_iuput, ssh_port_iuput, pwd_input, menu, }
+	let mut fl2rust_widget_23 = Group::new(0, 20, 944, 30, None);
+	fl2rust_widget_23.end();
+	fl2rust_widget_23.set_frame(FrameType::UpBox);
+	fl2rust_widget_23.set_color(Color::by_index(46));
+	main_window.add(&fl2rust_widget_23);
+	let mut fl2rust_widget_24 = Frame::new(75, 25, 45, 20, "Name");
+	fl2rust_widget_23.add(&fl2rust_widget_24);
+	let mut fl2rust_widget_25 = Frame::new(600, 25, 40, 20, "Type");
+	fl2rust_widget_23.add(&fl2rust_widget_25);
+	let mut fl2rust_widget_26 = Frame::new(785, 25, 40, 20, "Start");
+	fl2rust_widget_23.add(&fl2rust_widget_26);
+	let mut fl2rust_widget_27 = Frame::new(825, 25, 40, 20, "Stop");
+	fl2rust_widget_23.add(&fl2rust_widget_27);
+	let mut fl2rust_widget_28 = Frame::new(25, 25, 30, 20, "No.");
+	fl2rust_widget_23.add(&fl2rust_widget_28);
+	let mut fl2rust_widget_29 = Frame::new(872, 25, 28, 20, "Del");
+	fl2rust_widget_23.add(&fl2rust_widget_29);
+	Self { main_window, scroll_view, tunnel_row, forward_type_choice, index_txt, start_btn, stop_btn, del_btn, name_iuput, remote_host_input, forward_port_iuput, remote_port_input, ssh_username_iuput, ssh_server_ip_iuput, ssh_port_iuput, pwd_input, tunnel_row_remote, forward_type_choice_remote, index_txt_remote, start_btn_remote, stop_btn_remote, del_btn_remote, name_iuput_remote, local_host_input, forward_port_iuput_remote, local_port_input, menu, }
     }
 }
 

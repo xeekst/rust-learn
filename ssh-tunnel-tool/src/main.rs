@@ -81,7 +81,10 @@ fn main() {
                 println!("msg:{:?}", m);
                 handle_view_msg(&mut view, m, &mut map);
             }
-
+            else {
+                thread::sleep(Duration::from_millis(1));
+            }
+        
             if (chrono::Local::now() - last_time) > chrono::Duration::seconds(5) {
                 last_time = chrono::Local::now();
                 check_ssh_tunnels(&mut map);
