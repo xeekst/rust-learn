@@ -11,6 +11,11 @@ use std::{
 use anyhow::Result;
 use expectrl::{process::windows::WinProcess, spawn, Session};
 
+pub enum TunnelType{
+    Local,
+    Remote,
+}
+
 //#[derive(Debug)]
 pub struct SSHTunnel {
     id: String,

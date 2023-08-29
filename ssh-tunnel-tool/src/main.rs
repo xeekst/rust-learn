@@ -52,7 +52,8 @@ pub enum MsgType {
     INFO,
     ERROR,
 
-    AddTunnelRow,
+    AddLocalTunnelRow,
+    AddRemoteTunnelRow,
     ResizeMainWindow,
     StartTunnel,
     StopTunnel,

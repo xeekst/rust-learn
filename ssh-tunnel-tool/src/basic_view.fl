@@ -7,204 +7,207 @@ class BasicView {open
   Function {make_window()} {open
   } {
     Fl_Window main_window {open
-      xywh {363 175 960 340} type Double color 7 size_range {960 200 960 900} visible
+      xywh {363 175 960 400} type Double color 7 size_range {960 200 960 900} visible
     } {
       Fl_Scroll scroll_view {open
-        xywh {0 50 960 290} box UP_BOX color 7 labelfont 1 align 0
+        xywh {0 50 960 320} box FLAT_BOX color 7 labelfont 1 align 0
       } {
-        Fl_Group tunnel_row {
-          label g_id open selected
-          xywh {15 54 913 130} box UP_BOX color 54 labelcolor 54 align 0
+        Fl_Group local_tunnel_group {
+          label g_id
+          xywh {15 60 913 130} box UP_BOX color 54 labelcolor 54 align 0
         } {
-          Fl_Box {} {
-            xywh {15 93 913 3} box FLAT_BOX color 38 labeltype NO_LABEL
+          Fl_Box gray_line {
+            xywh {15 99 913 3} box FLAT_BOX color 38 labeltype NO_LABEL
           }
           Fl_Choice forward_type_choice {open
-            xywh {585 60 75 24} down_box BORDER_BOX
+            xywh {585 66 75 24} down_box BORDER_BOX
           } {}
           Fl_Box index_txt {
             label 1
-            xywh {28 62 20 20} color 46 labelfont 1 labelcolor 229
+            xywh {28 68 20 20} color 46 labelfont 1 labelcolor 229
           }
           Fl_Button start_btn {
-            tooltip {start tunnel} image {asset\\play.png} deimage {asset\\inactive_play.png} xywh {795 61 24 24} box FLAT_BOX color 255 align 16
+            tooltip {start tunnel} image {asset\\play.png} deimage {asset\\inactive_play.png} xywh {795 67 24 24} box FLAT_BOX color 255 align 16
           }
           Fl_Button stop_btn {
-            tooltip {stop tunnel} image {asset\\stop.png} deimage {asset\\inactive_stop.png} xywh {835 61 24 24} box FLAT_BOX color 255 align 16 deactivate
+            tooltip {stop tunnel} image {asset\\stop.png} deimage {asset\\inactive_stop.png} xywh {835 67 24 24} box FLAT_BOX color 255 align 16 deactivate
           }
           Fl_Button del_btn {
-            tooltip {delete this config} image {asset\\del.png} deimage {asset\\inactive_del.png} xywh {875 61 24 24} box FLAT_BOX color 255 align 16 deactivate
+            tooltip {delete this config} image {asset\\del.png} deimage {asset\\inactive_del.png} xywh {875 67 24 24} box FLAT_BOX color 255 align 16 deactivate
           }
           Fl_Input name_iuput {
-            xywh {55 60 480 24} labeltype NO_LABEL
+            xywh {55 66 480 24} labeltype NO_LABEL
           }
-          Fl_Box {} {
+          Fl_Box local_listen_addr_box {
             label {local listen addr}
-            xywh {140 125 145 35} box UP_BOX labeltype EMBOSSED_LABEL labelcolor 229 align 1
+            xywh {140 131 145 35} box UP_BOX labeltype EMBOSSED_LABEL labelcolor 229 align 1
           }
-          Fl_Box {} {
-            label {remote addr}
-            xywh {710 125 190 35} box UP_BOX labeltype EMBOSSED_LABEL labelcolor 229 align 1
+          Fl_Box remote_addr_box {
+            label {remote service addr}
+            xywh {710 131 190 35} box UP_BOX labeltype EMBOSSED_LABEL labelcolor 229 align 1
           }
           Fl_Input remote_host_input {
-            xywh {718 131 110 24} labeltype NO_LABEL
+            xywh {718 137 110 24} labeltype NO_LABEL
           }
-          Fl_Box {} {
+          Fl_Box img_pc {
             label {💻}
-            xywh {50 120 40 40} labelsize 40
+            xywh {50 126 40 40} labelsize 40
           }
-          Fl_Box {} {
+          Fl_Box img_right_arrow1 {
             label {🠖❯}
-            xywh {85 140 55 10} box FLAT_BOX color 53 labeltype ENGRAVED_LABEL labelfont 1 labelsize 15 labelcolor 229
+            xywh {85 146 55 10} box FLAT_BOX color 53 labeltype ENGRAVED_LABEL labelfont 1 labelsize 15 labelcolor 229
           }
-          Fl_Box {} {
+          Fl_Box img_right_arrow2 {
             label {🠖❯}
-            xywh {285 140 90 10} box FLAT_BOX color 53 labeltype ENGRAVED_LABEL labelfont 1 labelsize 15 labelcolor 229
+            xywh {285 146 90 10} box FLAT_BOX color 53 labeltype ENGRAVED_LABEL labelfont 1 labelsize 15 labelcolor 229
           }
-          Fl_Box {} {
+          Fl_Box img_right_arrow3 {
             label {🠖❯}
-            xywh {665 140 45 10} box FLAT_BOX color 53 labeltype ENGRAVED_LABEL labelfont 1 labelsize 15 labelcolor 229
+            xywh {665 146 45 10} box FLAT_BOX color 53 labeltype ENGRAVED_LABEL labelfont 1 labelsize 15 labelcolor 229
           }
-          Fl_Input forward_port_iuput {
+          Fl_Input forward_port_input {
             label {0.0.0.0:}
-            xywh {200 131 70 24}
+            xywh {205 137 70 24}
             class IntInput
           }
           Fl_Input remote_port_input {
             label {:}
-            xywh {840 131 50 24}
+            xywh {840 137 50 24}
           }
-          Fl_Box {} {
+          Fl_Box ssh_server_box {
             label {SSH Server}
-            xywh {375 113 290 60} box UP_BOX labeltype EMBOSSED_LABEL labelcolor 229 align 1
+            xywh {375 119 290 60} box UP_BOX labeltype EMBOSSED_LABEL labelcolor 229 align 1
           }
-          Fl_Box {} {
+          Fl_Box img_firewall {
             label firewall
-            xywh {350 112 8 70} box FLAT_BOX color 92 labeltype EMBOSSED_LABEL labelcolor 90 align 1
+            xywh {350 118 8 70} box FLAT_BOX color 92 labeltype EMBOSSED_LABEL labelcolor 90 align 1
           }
-          Fl_Input ssh_username_iuput {
+          Fl_Input ssh_username_input {
             label {user:}
-            xywh {425 145 100 24}
+            xywh {425 151 100 24}
           }
-          Fl_Input ssh_server_ip_iuput {
+          Fl_Input ssh_server_ip_input {
             label {host:}
-            xywh {425 117 100 24}
+            xywh {425 123 100 24}
           }
-          Fl_Input ssh_port_iuput {
+          Fl_Input ssh_port_input {
             label {port:}
-            xywh {565 117 85 24}
+            xywh {565 123 85 24}
             class IntInput
           }
-          Fl_Input pwd_input {
+          Fl_Input ssh_pwd_input {
             label {pwd:}
-            xywh {565 145 85 24}
+            xywh {565 151 85 24}
             class SecretInput
           }
         }
-        Fl_Group tunnel_row_remote {
-          label g_id open
-          xywh {15 194 913 130} box UP_BOX color 54 labelcolor 54 align 0
+        Fl_Group remote_tunnel_group {
+          label g_id
+          xywh {15 200 913 130} box UP_BOX color 54 labelcolor 54 align 0
         } {
           Fl_Box {} {
-            xywh {15 233 913 3} box FLAT_BOX color 38 labeltype NO_LABEL
+            xywh {15 239 913 3} box FLAT_BOX color 38 labeltype NO_LABEL
           }
           Fl_Choice forward_type_choice_remote {open
-            xywh {585 200 75 24} down_box BORDER_BOX
+            xywh {585 206 75 24} down_box BORDER_BOX
           } {}
           Fl_Box index_txt_remote {
             label 1
-            xywh {28 202 20 20} color 46 labelfont 1 labelcolor 229
+            xywh {28 208 20 20} color 46 labelfont 1 labelcolor 229
           }
           Fl_Button start_btn_remote {
-            image {asset\\play.png} deimage {asset\\inactive_play.png} xywh {795 201 24 24} box FLAT_BOX color 255 align 16
+            image {asset\\play.png} deimage {asset\\inactive_play.png} xywh {795 207 24 24} box FLAT_BOX color 255 align 16
           }
           Fl_Button stop_btn_remote {
-            image {asset\\stop.png} deimage {asset\\inactive_stop.png} xywh {835 201 24 24} box FLAT_BOX color 255 align 16 deactivate
+            image {asset\\stop.png} deimage {asset\\inactive_stop.png} xywh {835 207 24 24} box FLAT_BOX color 255 align 16 deactivate
           }
           Fl_Button del_btn_remote {
-            image {asset\\del.png} deimage {asset\\inactive_del.png} xywh {875 201 24 24} box FLAT_BOX color 255 align 16 deactivate
+            image {asset\\del.png} deimage {asset\\inactive_del.png} xywh {875 207 24 24} box FLAT_BOX color 255 align 16 deactivate
           }
           Fl_Input name_iuput_remote {
-            xywh {55 200 480 24} labeltype NO_LABEL
+            xywh {55 206 480 24} labeltype NO_LABEL
           }
-          Fl_Box {} {
+          Fl_Box remote_listen_addr_box {
             label {remote listen addr}
-            xywh {755 265 145 35} box UP_BOX labeltype EMBOSSED_LABEL labelcolor 229 align 1
+            xywh {755 271 145 35} box UP_BOX labeltype EMBOSSED_LABEL labelcolor 229 align 1
           }
-          Fl_Box {} {
-            label {local addr}
-            xywh {140 265 190 35} box UP_BOX labeltype EMBOSSED_LABEL labelcolor 229 align 1
+          Fl_Box real_service_addr_box_remote {
+            label {local service addr}
+            xywh {140 271 190 35} box UP_BOX labeltype EMBOSSED_LABEL labelcolor 229 align 1
           }
           Fl_Input local_host_input {
-            xywh {148 271 110 24} labeltype NO_LABEL
+            xywh {148 277 110 24} labeltype NO_LABEL
           }
           Fl_Box {} {
             label {💻}
-            xywh {50 260 40 40} labelsize 40
+            xywh {50 266 40 40} labelsize 40
           }
-          Fl_Box {} {
+          Fl_Box img_left_arrow1 {
             label {❮🠔}
-            xywh {85 280 55 10} box FLAT_BOX color 53 labeltype ENGRAVED_LABEL labelfont 1 labelsize 15 labelcolor 229
+            xywh {85 286 55 10} box FLAT_BOX color 53 labeltype ENGRAVED_LABEL labelfont 1 labelsize 15 labelcolor 229
           }
-          Fl_Box {} {
+          Fl_Box img_left_arrow2 {
             label {❮🠔}
-            xywh {330 280 50 10} box FLAT_BOX color 53 labeltype ENGRAVED_LABEL labelfont 1 labelsize 15 labelcolor 229
+            xywh {330 286 50 10} box FLAT_BOX color 53 labeltype ENGRAVED_LABEL labelfont 1 labelsize 15 labelcolor 229
           }
-          Fl_Box {} {
+          Fl_Box img_left_arrow3 {
             label {❮🠔}
-            xywh {665 280 90 10} box FLAT_BOX color 53 labeltype ENGRAVED_LABEL labelfont 1 labelsize 15 labelcolor 229
+            xywh {665 286 90 10} box FLAT_BOX color 53 labeltype ENGRAVED_LABEL labelfont 1 labelsize 15 labelcolor 229
           }
           Fl_Input forward_port_iuput_remote {
-            label {0.0.0.0:}
-            xywh {815 271 70 24}
+            label {127.0.0.1:}
+            xywh {825 277 70 24}
             class IntInput
           }
           Fl_Input local_port_input {
             label {:}
-            xywh {270 271 50 24}
+            xywh {270 277 50 24}
           }
           Fl_Box {} {
             label {SSH Server}
-            xywh {375 253 290 60} box UP_BOX labeltype EMBOSSED_LABEL labelcolor 229 align 1
+            xywh {375 259 290 60} box UP_BOX labeltype EMBOSSED_LABEL labelcolor 229 align 1
           }
           Fl_Input {} {
             label {user:}
-            xywh {425 285 100 24}
+            xywh {425 291 100 24}
           }
           Fl_Input {} {
             label {host:}
-            xywh {425 257 100 24}
+            xywh {425 263 100 24}
           }
           Fl_Input {} {
             label {port:}
-            xywh {565 257 85 24}
+            xywh {565 263 85 24}
             class IntInput
           }
           Fl_Input {} {
             label {pwd:}
-            xywh {565 285 85 24}
+            xywh {565 291 85 24}
             class SecretInput
           }
-          Fl_Box {} {
+          Fl_Box remote_img_firewall {
             label firewall
-            xywh {360 250 8 70} box FLAT_BOX color 92 labeltype EMBOSSED_LABEL labelcolor 90 align 1
+            xywh {360 256 8 70} box FLAT_BOX color 92 labeltype EMBOSSED_LABEL labelcolor 90 align 1
           }
         }
       }
       Fl_Menu_Bar menu {open
         xywh {0 0 960 20} color 46
-      } {
-        MenuItem add_btn {
-          label {+}
-          xywh {0 0 100 20}
-        }
-        MenuItem {} {
-          label about
-          xywh {0 0 100 20}
-        }
+      } {}
+      Fl_Button {} {
+        label about selected
+        xywh {890 1 62 18}
+      }
+      Fl_Button add_local_tunnel_btn {
+        label {Add Local}
+        xywh {2 1 100 18} box FLAT_BOX color 228 labelfont 1 labelcolor 55
+      }
+      Fl_Button add_remote_tunnel_btn {
+        label {Add Remote}
+        xywh {110 1 100 18} box FLAT_BOX color 228 labelfont 1 labelcolor 55
       }
       Fl_Group {} {open
-        xywh {0 20 944 30} box UP_BOX color 46
+        xywh {0 20 960 30} box UP_BOX color 46
       } {
         Fl_Box {} {
           label Name
