@@ -1,13 +1,19 @@
+use std::borrow::BorrowMut;
 use std::collections::HashMap;
+use std::fs;
+use std::sync::Arc;
+use std::time::Duration;
+use std::time::SystemTime;
 
+use fltk::app::GlobalState;
 use fltk::browser::*;
 use fltk::button::*;
 use fltk::dialog::*;
 use fltk::enums::*;
 use fltk::frame::*;
 use fltk::group::*;
-use fltk::image;
 use fltk::image::*;
+use fltk::image::{PngImage, RgbImage, SharedImage};
 use fltk::input::*;
 use fltk::menu::*;
 use fltk::misc::*;
@@ -19,34 +25,55 @@ use fltk::tree::*;
 use fltk::valuator::*;
 use fltk::widget::*;
 use fltk::window::*;
+use image::{DynamicImage, ImageBuffer, Rgba};
+use log::error;
+use log::info;
+use log::warn;
+use serde::Deserialize;
+use serde::Serialize;
+use tokio::sync::Mutex;
 
 use crate::basic_view::BasicView;
+use crate::config;
 use crate::ssh_tunnel::SSHTunnel;
+use crate::ssh_tunnel::SSHTunnelJson;
 use crate::ssh_tunnel::TunnelType;
 use crate::MsgType;
 use crate::UiMessage;
 use crate::RWLOCK_MSG_CHANNEL;
 use anyhow::{anyhow, Result};
 
+const IMG_MAIN_ICON: &[u8; 3619] = include_bytes!("../asset/network.png");
+const IMG_ADD: &[u8; 631] = include_bytes!("../asset/add.png");
+const IMG_DEL: &[u8; 616] = include_bytes!("../asset/del.png");
+const IMG_INACTIVE_PLAY: &[u8; 642] = include_bytes!("../asset/inactive_play.png");
+const IMG_INACTIVE_STOP: &[u8; 631] = include_bytes!("../asset/inactive_stop.png");
+const IMG_INACTIVE_DEL: &[u8; 565] = include_bytes!("../asset/inactive_del.png");
+const IMG_PLAY: &[u8; 738] = include_bytes!("../asset/play.png");
+const IMG_STOP: &[u8; 607] = include_bytes!("../asset/stop.png");
+
 pub struct SSHTunnelView {
     pub basic_view: BasicView,
 
     pub tunnel_rows: Vec<SSHTunnelRow>,
+    //pub ssh_tunnels_dict: HashMap<i32, SSHTunnel>,
 }
 
+#[derive(Debug)]
 pub struct SSHTunnelRow {
     pub id: i32,
     pub tunnel_type: TunnelType,
 
     pub row_group: Group,
     pub index_txt: Frame,
-    pub name_iuput: Input,
-    pub forward_type_choice: Choice,
+    pub name_input: Input,
+    pub forward_type_box: Frame,
     pub start_btn: Button,
     pub stop_btn: Button,
     pub del_btn: Button,
 
     pub img_gray_line: Frame,
+    pub info_btn: Button,
     pub img_pc: Frame,
     pub img_arrow1: Frame,
     pub img_arrow2: Frame,
@@ -69,28 +96,29 @@ pub struct SSHTunnelRow {
     // 类型为: Remote => 是在本机上可访问的某个服务
     pub real_service_host_input: Input,
     pub real_service_port_input: Input,
+
+    pub info_data: String,
 }
 
 impl SSHTunnelView {
     pub fn new() -> Self {
-        let view = BasicView::make_window();
+        let mut view = BasicView::make_window();
+        view.main_window = view.main_window.center_screen();
         SSHTunnelView {
             basic_view: view,
             tunnel_rows: vec![],
+            //ssh_tunnels_dict: HashMap::new(),
         }
     }
 
     pub fn init(&mut self) {
-        self.basic_view
-            .main_window
-            .resize_callback(|_, x, y, w, h| {
-                send(UiMessage {
-                    msg_type: MsgType::ResizeMainWindow,
-                    msg: format!("{x}|{y}|{w}|{h}"),
-                })
-            });
-        let image = image::PngImage::load("asset/network.png").unwrap();
-        self.basic_view.main_window.set_icon(Some(image));
+        self.basic_view.main_window.resize_callback(|_, x, y, w, h| {
+            send(UiMessage {
+                msg_type: MsgType::ResizeMainWindow,
+                msg: format!("{x}|{y}|{w}|{h}"),
+            })
+        });
+        self.basic_view.main_window.set_icon(Some(trans_bytes_to_png(IMG_MAIN_ICON, 128, 128)));
         self.basic_view.add_local_tunnel_btn.set_callback(|b| {
             send(UiMessage {
                 msg_type: MsgType::AddLocalTunnelRow,
@@ -105,9 +133,26 @@ impl SSHTunnelView {
         });
         self.basic_view.local_tunnel_group.hide();
         self.basic_view.remote_tunnel_group.hide();
+        self.basic_view.save_btn.set_callback(|_| {
+            send(UiMessage {
+                msg_type: MsgType::UpdateConfig,
+                msg: "".to_owned(),
+            })
+        });
+        self.init_data();
     }
 
-    pub fn add_ssh_remote_tunnel_row(&mut self) {
+    pub fn init_data(&mut self) {
+        let configs = config::read_config().unwrap();
+        for config in configs {
+            match config.forward_type {
+                TunnelType::Local => self.add_ssh_local_tunnel_row(Some(config)),
+                TunnelType::Remote => self.add_ssh_remote_tunnel_row(Some(config)),
+            }
+        }
+    }
+
+    pub fn add_ssh_remote_tunnel_row(&mut self, data: Option<SSHTunnelJson>) {
         let idx = self.tunnel_rows.len() as i32;
         let id = idx;
         let y_offset = (self.basic_view.local_tunnel_group.h() + 10) * idx;
@@ -137,25 +182,27 @@ impl SSHTunnelView {
         index_txt.set_label(&format!("{idx}"));
         tunnel_group.add(&index_txt);
 
-        let name_iuput = Input::new(
-            self.basic_view.name_iuput.x(),
-            self.basic_view.name_iuput.y() + y_offset,
-            self.basic_view.name_iuput.w(),
-            self.basic_view.name_iuput.h(),
+        let mut name_input = Input::new(
+            self.basic_view.name_input.x(),
+            self.basic_view.name_input.y() + y_offset,
+            self.basic_view.name_input.w(),
+            self.basic_view.name_input.h(),
             "",
         );
-        tunnel_group.add(&name_iuput);
+        name_input.set_align(Align::Left);
 
-        let mut forward_type_choice = Choice::new(
-            self.basic_view.forward_type_choice.x(),
-            self.basic_view.forward_type_choice.y() + y_offset,
-            self.basic_view.forward_type_choice.w(),
-            self.basic_view.forward_type_choice.h(),
-            "",
+        tunnel_group.add(&name_input);
+
+        let mut remote_tunnel_type_box = Frame::new(
+            self.basic_view.remote_tunnel_type_box.x(),
+            self.basic_view.local_tunnel_type_box.y() + y_offset,
+            self.basic_view.remote_tunnel_type_box.w(),
+            self.basic_view.remote_tunnel_type_box.h(),
+            "Remote Tunnel",
         );
-        forward_type_choice.add_choice("Local");
-        forward_type_choice.add_choice("Remote");
-        tunnel_group.add(&forward_type_choice);
+        remote_tunnel_type_box.set_label_font(Font::by_index(1));
+        remote_tunnel_type_box.set_label_color(Color::by_index(229));
+        tunnel_group.add(&remote_tunnel_type_box);
 
         let mut start_btn = Button::new(
             self.basic_view.start_btn.x(),
@@ -164,14 +211,11 @@ impl SSHTunnelView {
             self.basic_view.start_btn.h(),
             None,
         );
+
         start_btn.set_tooltip("start tunnel");
-        start_btn.set_image(Some(
-            SharedImage::load("asset\\play.png").expect("Could not find image: asset\\play.png"),
-        ));
-        start_btn.set_deimage(Some(
-            SharedImage::load("asset\\inactive_play.png")
-                .expect("Could not find image: asset\\inactive_play.png"),
-        ));
+
+        start_btn.set_image(Some(trans_bytes_to_png(IMG_PLAY, 24, 24)));
+        start_btn.set_deimage(Some(trans_bytes_to_png(IMG_INACTIVE_PLAY, 24, 24)));
         start_btn.set_frame(FrameType::FlatBox);
         start_btn.set_color(Color::by_index(255));
         start_btn.set_align(unsafe { std::mem::transmute(16) });
@@ -191,13 +235,8 @@ impl SSHTunnelView {
             None,
         );
         stop_btn.set_tooltip("stop tunnel");
-        stop_btn.set_image(Some(
-            SharedImage::load("asset\\stop.png").expect("Could not find image: asset\\stop.png"),
-        ));
-        stop_btn.set_deimage(Some(
-            SharedImage::load("asset\\inactive_stop.png")
-                .expect("Could not find image: asset\\inactive_stop.png"),
-        ));
+        stop_btn.set_image(Some(trans_bytes_to_png(IMG_STOP, 24, 24)));
+        stop_btn.set_deimage(Some(trans_bytes_to_png(IMG_INACTIVE_STOP, 24, 24)));
         stop_btn.set_frame(FrameType::FlatBox);
         stop_btn.set_color(Color::by_index(255));
         stop_btn.set_align(unsafe { std::mem::transmute(16) });
@@ -208,6 +247,12 @@ impl SSHTunnelView {
             })
         });
         stop_btn.deactivate();
+        stop_btn.set_callback(move |b| {
+            send(UiMessage {
+                msg_type: MsgType::StopTunnel,
+                msg: id.to_string(),
+            })
+        });
         tunnel_group.add(&stop_btn);
 
         let mut del_btn = Button::new(
@@ -218,13 +263,8 @@ impl SSHTunnelView {
             None,
         );
         del_btn.set_tooltip("delete this tunnel");
-        del_btn.set_image(Some(
-            SharedImage::load("asset\\del.png").expect("Could not find image: asset\\del.png"),
-        ));
-        del_btn.set_deimage(Some(
-            SharedImage::load("asset\\inactive_del.png")
-                .expect("Could not find image: asset\\inactive_del.png"),
-        ));
+        del_btn.set_image(Some(trans_bytes_to_png(IMG_DEL, 24, 24)));
+        del_btn.set_deimage(Some(trans_bytes_to_png(IMG_INACTIVE_DEL, 24, 24)));
         del_btn.set_frame(FrameType::FlatBox);
         del_btn.set_color(Color::by_index(255));
         del_btn.set_align(unsafe { std::mem::transmute(16) });
@@ -247,6 +287,22 @@ impl SSHTunnelView {
         img_gray_line.set_color(Color::by_index(38));
         img_gray_line.set_label_type(LabelType::None);
         tunnel_group.add(&img_gray_line);
+
+        let mut info_btn_remote = Button::new(
+            self.basic_view.info_btn_remote.x(),
+            self.basic_view.info_btn_local.y() + y_offset,
+            self.basic_view.info_btn_remote.w(),
+            self.basic_view.info_btn_remote.h(),
+            "!",
+        );
+        info_btn_remote.set_callback(move |b| {
+            send(UiMessage {
+                msg_type: MsgType::ShowTunnelInfoDialog,
+                msg: id.to_string(),
+            })
+        });
+        info_btn_remote.set_label_color(Color::by_index(38));
+        tunnel_group.add(&info_btn_remote);
 
         let mut img_pc = Frame::new(
             self.basic_view.img_pc.x(),
@@ -329,7 +385,7 @@ impl SSHTunnelView {
         real_service_addr_box.set_align(unsafe { std::mem::transmute(1) });
         tunnel_group.add(&real_service_addr_box);
 
-        let real_service_host_input = Input::new(
+        let mut real_service_host_input = Input::new(
             self.basic_view.local_host_input.x(),
             self.basic_view.remote_host_input.y() + y_offset,
             self.basic_view.local_host_input.w(),
@@ -337,7 +393,7 @@ impl SSHTunnelView {
             "",
         );
         tunnel_group.add(&real_service_host_input);
-        let real_service_port_input = Input::new(
+        let mut real_service_port_input = Input::new(
             self.basic_view.local_port_input.x(),
             self.basic_view.remote_port_input.y() + y_offset,
             self.basic_view.local_port_input.w(),
@@ -359,7 +415,7 @@ impl SSHTunnelView {
         ssh_server_box.set_align(unsafe { std::mem::transmute(1) });
         tunnel_group.add(&ssh_server_box);
 
-        let ssh_server_host_input = Input::new(
+        let mut ssh_server_host_input = Input::new(
             self.basic_view.ssh_server_ip_input.x(),
             self.basic_view.ssh_server_ip_input.y() + y_offset,
             self.basic_view.ssh_server_ip_input.w(),
@@ -368,7 +424,7 @@ impl SSHTunnelView {
         );
         tunnel_group.add(&ssh_server_host_input);
 
-        let ssh_server_port_input = Input::new(
+        let mut ssh_server_port_input = Input::new(
             self.basic_view.ssh_port_input.x(),
             self.basic_view.ssh_port_input.y() + y_offset,
             self.basic_view.ssh_port_input.w(),
@@ -377,7 +433,7 @@ impl SSHTunnelView {
         );
         tunnel_group.add(&ssh_server_port_input);
 
-        let ssh_server_username_input = Input::new(
+        let mut ssh_server_username_input = Input::new(
             self.basic_view.ssh_username_input.x(),
             self.basic_view.ssh_username_input.y() + y_offset,
             self.basic_view.ssh_username_input.w(),
@@ -386,7 +442,7 @@ impl SSHTunnelView {
         );
         tunnel_group.add(&ssh_server_username_input);
 
-        let ssh_server_pwd_input = Input::new(
+        let mut ssh_server_pwd_input = Input::new(
             self.basic_view.ssh_pwd_input.x(),
             self.basic_view.ssh_pwd_input.y() + y_offset,
             self.basic_view.ssh_pwd_input.w(),
@@ -408,25 +464,37 @@ impl SSHTunnelView {
         listen_addr_box.set_align(unsafe { std::mem::transmute(1) });
         tunnel_group.add(&listen_addr_box);
 
-        let listen_port_input = Input::new(
-            self.basic_view.forward_port_iuput_remote.x(),
+        let mut listen_port_input = Input::new(
+            self.basic_view.forward_port_input_remote.x(),
             self.basic_view.forward_port_input.y() + y_offset,
-            self.basic_view.forward_port_iuput_remote.w(),
-            self.basic_view.forward_port_iuput_remote.h(),
+            self.basic_view.forward_port_input_remote.w(),
+            self.basic_view.forward_port_input_remote.h(),
             "127.0.0.1:",
         );
         tunnel_group.add(&listen_port_input);
+
+        if let Some(d) = data {
+            name_input.set_value(&d.name);
+            listen_port_input.set_value(&d.forward_port.to_string());
+            ssh_server_host_input.set_value(&d.ssh_host);
+            ssh_server_port_input.set_value(&d.ssh_port.to_string());
+            ssh_server_username_input.set_value(&d.ssh_user);
+            ssh_server_pwd_input.set_value(&d.ssh_pwd);
+            real_service_host_input.set_value(&d.real_service_host);
+            real_service_port_input.set_value(&d.real_service_port.to_string());
+        }
 
         let row = SSHTunnelRow {
             id: idx,
             tunnel_type: TunnelType::Remote,
             row_group: tunnel_group,
             index_txt,
-            name_iuput,
-            forward_type_choice,
+            name_input,
+            forward_type_box: remote_tunnel_type_box,
             start_btn,
             stop_btn,
             del_btn,
+            info_btn: info_btn_remote,
             img_gray_line,
             img_pc,
             img_arrow1,
@@ -443,12 +511,13 @@ impl SSHTunnelView {
             ssh_server_pwd_input,
             real_service_host_input,
             real_service_port_input,
+            info_data: "".to_owned(),
         };
 
         self.tunnel_rows.push(row);
     }
 
-    pub fn add_ssh_local_tunnel_row(&mut self) {
+    pub fn add_ssh_local_tunnel_row(&mut self, data: Option<SSHTunnelJson>) {
         let idx = self.tunnel_rows.len() as i32;
         let id = idx;
         let y_offset = (self.basic_view.local_tunnel_group.h() + 10) * idx;
@@ -478,25 +547,26 @@ impl SSHTunnelView {
         index_txt.set_label(&format!("{idx}"));
         local_tunnel_group.add(&index_txt);
 
-        let name_iuput = Input::new(
-            self.basic_view.name_iuput.x(),
-            self.basic_view.name_iuput.y() + y_offset,
-            self.basic_view.name_iuput.w(),
-            self.basic_view.name_iuput.h(),
+        let mut name_input = Input::new(
+            self.basic_view.name_input.x(),
+            self.basic_view.name_input.y() + y_offset,
+            self.basic_view.name_input.w(),
+            self.basic_view.name_input.h(),
             "",
         );
-        local_tunnel_group.add(&name_iuput);
+        name_input.set_align(Align::Left);
+        local_tunnel_group.add(&name_input);
 
-        let mut forward_type_choice = Choice::new(
-            self.basic_view.forward_type_choice.x(),
-            self.basic_view.forward_type_choice.y() + y_offset,
-            self.basic_view.forward_type_choice.w(),
-            self.basic_view.forward_type_choice.h(),
-            "",
+        let mut local_tunnel_type_box = Frame::new(
+            self.basic_view.local_tunnel_type_box.x(),
+            self.basic_view.local_tunnel_type_box.y() + y_offset,
+            self.basic_view.local_tunnel_type_box.w(),
+            self.basic_view.local_tunnel_type_box.h(),
+            "Local Tunnel",
         );
-        forward_type_choice.add_choice("Local");
-        forward_type_choice.add_choice("Remote");
-        local_tunnel_group.add(&forward_type_choice);
+        local_tunnel_type_box.set_label_font(Font::by_index(1));
+        local_tunnel_type_box.set_label_color(Color::by_index(229));
+        local_tunnel_group.add(&local_tunnel_type_box);
 
         let mut start_btn = Button::new(
             self.basic_view.start_btn.x(),
@@ -506,16 +576,17 @@ impl SSHTunnelView {
             None,
         );
         start_btn.set_tooltip("start tunnel");
-        start_btn.set_image(Some(
-            SharedImage::load("asset\\play.png").expect("Could not find image: asset\\play.png"),
-        ));
-        start_btn.set_deimage(Some(
-            SharedImage::load("asset\\inactive_play.png")
-                .expect("Could not find image: asset\\inactive_play.png"),
-        ));
+        start_btn.set_image(Some(trans_bytes_to_png(IMG_PLAY, 24, 24)));
+        start_btn.set_deimage(Some(trans_bytes_to_png(IMG_INACTIVE_PLAY, 24, 24)));
         start_btn.set_frame(FrameType::FlatBox);
         start_btn.set_color(Color::by_index(255));
         start_btn.set_align(unsafe { std::mem::transmute(16) });
+        start_btn.set_callback(move |b| {
+            send(UiMessage {
+                msg_type: MsgType::StartTunnel,
+                msg: id.to_string(),
+            })
+        });
         local_tunnel_group.add(&start_btn);
 
         let mut stop_btn = Button::new(
@@ -526,17 +597,18 @@ impl SSHTunnelView {
             None,
         );
         stop_btn.set_tooltip("stop tunnel");
-        stop_btn.set_image(Some(
-            SharedImage::load("asset\\stop.png").expect("Could not find image: asset\\stop.png"),
-        ));
-        stop_btn.set_deimage(Some(
-            SharedImage::load("asset\\inactive_stop.png")
-                .expect("Could not find image: asset\\inactive_stop.png"),
-        ));
+        stop_btn.set_image(Some(trans_bytes_to_png(IMG_STOP, 24, 24)));
+        stop_btn.set_deimage(Some(trans_bytes_to_png(IMG_INACTIVE_STOP, 24, 24)));
         stop_btn.set_frame(FrameType::FlatBox);
         stop_btn.set_color(Color::by_index(255));
         stop_btn.set_align(unsafe { std::mem::transmute(16) });
         stop_btn.deactivate();
+        stop_btn.set_callback(move |b| {
+            send(UiMessage {
+                msg_type: MsgType::StopTunnel,
+                msg: id.to_string(),
+            })
+        });
         local_tunnel_group.add(&stop_btn);
 
         let mut del_btn = Button::new(
@@ -546,21 +618,19 @@ impl SSHTunnelView {
             self.basic_view.del_btn.h(),
             None,
         );
-        println!(
-            "self.basic_view.del_btn.w():{}",
-            self.basic_view.del_btn.w()
-        );
+
         del_btn.set_tooltip("delete this tunnel");
-        del_btn.set_image(Some(
-            SharedImage::load("asset\\del.png").expect("Could not find image: asset\\del.png"),
-        ));
-        del_btn.set_deimage(Some(
-            SharedImage::load("asset\\inactive_del.png")
-                .expect("Could not find image: asset\\inactive_del.png"),
-        ));
+        del_btn.set_image(Some(trans_bytes_to_png(IMG_DEL, 24, 24)));
+        del_btn.set_deimage(Some(trans_bytes_to_png(IMG_INACTIVE_DEL, 24, 24)));
         del_btn.set_frame(FrameType::FlatBox);
         del_btn.set_color(Color::by_index(255));
         del_btn.set_align(unsafe { std::mem::transmute(16) });
+        del_btn.set_callback(move |b| {
+            send(UiMessage {
+                msg_type: MsgType::DeleteTunnel,
+                msg: id.to_string(),
+            })
+        });
         local_tunnel_group.add(&del_btn);
 
         let mut img_gray_line = Frame::new(
@@ -574,6 +644,22 @@ impl SSHTunnelView {
         img_gray_line.set_color(Color::by_index(38));
         img_gray_line.set_label_type(LabelType::None);
         local_tunnel_group.add(&img_gray_line);
+
+        let mut info_btn_local = Button::new(
+            self.basic_view.info_btn_local.x(),
+            self.basic_view.info_btn_local.y() + y_offset,
+            self.basic_view.info_btn_local.w(),
+            self.basic_view.info_btn_local.h(),
+            "!",
+        );
+        info_btn_local.set_callback(move |b| {
+            send(UiMessage {
+                msg_type: MsgType::ShowTunnelInfoDialog,
+                msg: id.to_string(),
+            })
+        });
+        info_btn_local.set_label_color(Color::by_index(38));
+        local_tunnel_group.add(&info_btn_local);
 
         let mut img_pc = Frame::new(
             self.basic_view.img_pc.x(),
@@ -682,7 +768,7 @@ impl SSHTunnelView {
         real_service_addr_box.set_align(unsafe { std::mem::transmute(1) });
         local_tunnel_group.add(&real_service_addr_box);
 
-        let listen_port_input = Input::new(
+        let mut listen_port_input = Input::new(
             self.basic_view.forward_port_input.x(),
             self.basic_view.forward_port_input.y() + y_offset,
             self.basic_view.forward_port_input.w(),
@@ -691,7 +777,7 @@ impl SSHTunnelView {
         );
         local_tunnel_group.add(&listen_port_input);
 
-        let ssh_server_host_input = Input::new(
+        let mut ssh_server_host_input = Input::new(
             self.basic_view.ssh_server_ip_input.x(),
             self.basic_view.ssh_server_ip_input.y() + y_offset,
             self.basic_view.ssh_server_ip_input.w(),
@@ -700,7 +786,7 @@ impl SSHTunnelView {
         );
         local_tunnel_group.add(&ssh_server_host_input);
 
-        let ssh_server_port_input = Input::new(
+        let mut ssh_server_port_input = Input::new(
             self.basic_view.ssh_port_input.x(),
             self.basic_view.ssh_port_input.y() + y_offset,
             self.basic_view.ssh_port_input.w(),
@@ -709,7 +795,7 @@ impl SSHTunnelView {
         );
         local_tunnel_group.add(&ssh_server_port_input);
 
-        let ssh_server_username_input = Input::new(
+        let mut ssh_server_username_input = Input::new(
             self.basic_view.ssh_username_input.x(),
             self.basic_view.ssh_username_input.y() + y_offset,
             self.basic_view.ssh_username_input.w(),
@@ -718,7 +804,7 @@ impl SSHTunnelView {
         );
         local_tunnel_group.add(&ssh_server_username_input);
 
-        let ssh_server_pwd_input = Input::new(
+        let mut ssh_server_pwd_input = Input::new(
             self.basic_view.ssh_pwd_input.x(),
             self.basic_view.ssh_pwd_input.y() + y_offset,
             self.basic_view.ssh_pwd_input.w(),
@@ -727,7 +813,7 @@ impl SSHTunnelView {
         );
         local_tunnel_group.add(&ssh_server_pwd_input);
 
-        let real_service_host_input = Input::new(
+        let mut real_service_host_input = Input::new(
             self.basic_view.remote_host_input.x(),
             self.basic_view.remote_host_input.y() + y_offset,
             self.basic_view.remote_host_input.w(),
@@ -735,7 +821,7 @@ impl SSHTunnelView {
             "",
         );
         local_tunnel_group.add(&real_service_host_input);
-        let real_service_port_input = Input::new(
+        let mut real_service_port_input = Input::new(
             self.basic_view.remote_port_input.x(),
             self.basic_view.remote_port_input.y() + y_offset,
             self.basic_view.remote_port_input.w(),
@@ -744,17 +830,29 @@ impl SSHTunnelView {
         );
         local_tunnel_group.add(&real_service_port_input);
 
+        if let Some(d) = data {
+            name_input.set_value(&d.name);
+            listen_port_input.set_value(&d.forward_port.to_string());
+            ssh_server_host_input.set_value(&d.ssh_host);
+            ssh_server_port_input.set_value(&d.ssh_port.to_string());
+            ssh_server_username_input.set_value(&d.ssh_user);
+            ssh_server_pwd_input.set_value(&d.ssh_pwd);
+            real_service_host_input.set_value(&d.real_service_host);
+            real_service_port_input.set_value(&d.real_service_port.to_string());
+        }
+
         let row = SSHTunnelRow {
             id,
             tunnel_type: TunnelType::Local,
             row_group: local_tunnel_group,
             index_txt,
-            name_iuput,
-            forward_type_choice,
+            name_input,
+            forward_type_box: local_tunnel_type_box,
             start_btn,
             stop_btn,
             del_btn,
             img_gray_line,
+            info_btn: info_btn_local,
             img_pc,
             img_arrow1,
             img_arrow2,
@@ -770,342 +868,49 @@ impl SSHTunnelView {
             ssh_server_pwd_input,
             real_service_host_input,
             real_service_port_input,
+            info_data: "".to_owned(),
         };
 
         self.tunnel_rows.push(row);
     }
-    // pub fn add_ssh_tunnel_row(&mut self) {
-    //     let y = if self.tunnel_rows.len() > 0 {
-    //         self.tunnel_rows.last().unwrap().2.y() + 45
-    //     } else {
-    //         self.basic_view.name_iuput.y()
-    //     };
 
-    //     let group_id = chrono::Local::now().timestamp_micros().to_string();
+    pub fn try_verify_start_tunnel_params(&mut self, id: i32) -> Result<SSHTunnel> {
+        //info!("tunnel_rows:{:#?}", self.tunnel_rows);
+        let row_ot = self.tunnel_rows.iter_mut().find(|t| t.id == id);
+        if let Some(row) = row_ot {
+            let tunnel = SSHTunnel::new(
+                row.id,
+                row.name_input.value(),
+                crate::ssh_tunnel::Status::Stopped,
+                row.tunnel_type,
+                row.listen_port_input.value().parse::<u16>()?,
+                row.real_service_host_input.value(),
+                row.real_service_port_input.value().parse::<u16>()?,
+                row.ssh_server_host_input.value(),
+                row.ssh_server_port_input.value().parse::<u16>()?,
+                row.ssh_server_username_input.value(),
+                row.ssh_server_pwd_input.value(),
+            );
 
-    //     let mut tunnel = Group::new(
-    //         self.basic_view.tunnel_row.x(),
-    //         if self.tunnel_rows.len() > 0 {
-    //             self.tunnel_rows.last().unwrap().0.y() + 45
-    //         } else {
-    //             self.basic_view.tunnel_row.y()
-    //         },
-    //         self.basic_view.tunnel_row.w(),
-    //         self.basic_view.tunnel_row.h(),
-    //         None,
-    //     );
-    //     tunnel.set_label(&group_id);
-    //     tunnel.end();
-    //     tunnel.set_label_color(self.basic_view.tunnel_row.label_color());
-    //     tunnel.set_color(self.basic_view.tunnel_row.color());
-    //     tunnel.set_align(unsafe { std::mem::transmute(0) });
-    //     tunnel.set_frame(FrameType::BorderBox);
-    //     local_tunnel_group.add(&tunnel);
+            row.start_btn.deactivate();
+            row.stop_btn.activate();
+            row.del_btn.deactivate();
+            row.listen_port_input.deactivate();
+            row.ssh_server_host_input.deactivate();
+            row.ssh_server_port_input.deactivate();
+            row.ssh_server_username_input.deactivate();
+            row.ssh_server_pwd_input.deactivate();
+            row.real_service_host_input.deactivate();
+            row.real_service_port_input.deactivate();
 
-    //     let mut index_txt = Frame::new(
-    //         self.basic_view.index_txt.x(),
-    //         y,
-    //         self.basic_view.index_txt.w(),
-    //         self.basic_view.index_txt.h(),
-    //         "0",
-    //     );
-    //     index_txt.set_label(&format!("{}", self.tunnel_rows.len()));
-    //     index_txt.set_color(Color::by_index(46));
-    //     index_txt.set_label_font(Font::by_index(1));
-    //     index_txt.set_label_color(Color::by_index(229));
-    //     tunnel.add(&index_txt);
+            return Ok(tunnel);
+        }
 
-    //     let mut forward_type_choice = Choice::new(
-    //         self.basic_view.forward_type_choice.x(),
-    //         y,
-    //         self.basic_view.forward_type_choice.w(),
-    //         self.basic_view.forward_type_choice.h(),
-    //         "menu",
-    //     );
-    //     forward_type_choice.set_label("");
-    //     forward_type_choice.add_choice("Local");
-    //     forward_type_choice.add_choice("Remote");
-    //     forward_type_choice.end();
-    //     tunnel.add(&forward_type_choice);
-
-    //     let mut start_btn = Button::new(
-    //         self.basic_view.start_btn.x(),
-    //         y - 2,
-    //         self.basic_view.start_btn.w(),
-    //         self.basic_view.start_btn.h(),
-    //         None,
-    //     );
-    //     start_btn.set_image(Some(
-    //         SharedImage::load("asset\\play.png")
-    //             .expect("Could not find image: ..\\asset\\play.png"),
-    //     ));
-    //     start_btn.set_deimage(Some(
-    //         SharedImage::load("asset\\inactive_play.png")
-    //             .expect("Could not find image: ..\\asset\\inactive_play.png"),
-    //     ));
-    //     start_btn.set_frame(FrameType::FlatBox);
-    //     start_btn.set_color(Color::by_index(255));
-    //     start_btn.set_align(unsafe { std::mem::transmute(16) });
-    //     start_btn.set_tooltip("start this ssh tunnel.");
-    //     tunnel.add(&start_btn);
-    //     let mut stop_btn = Button::new(
-    //         self.basic_view.stop_btn.x(),
-    //         y - 2,
-    //         self.basic_view.stop_btn.width(),
-    //         self.basic_view.stop_btn.h(),
-    //         None,
-    //     );
-    //     stop_btn.set_image(Some(
-    //         SharedImage::load("asset\\stop.png")
-    //             .expect("Could not find image: ..\\asset\\stop.png"),
-    //     ));
-    //     stop_btn.set_deimage(Some(
-    //         SharedImage::load("asset\\inactive_stop.png")
-    //             .expect("Could not find image: ..\\asset\\inactive_stop.png"),
-    //     ));
-    //     stop_btn.set_frame(FrameType::FlatBox);
-    //     stop_btn.set_color(Color::by_index(255));
-    //     stop_btn.set_tooltip("stop this ssh tunnel.");
-    //     stop_btn.set_align(unsafe { std::mem::transmute(16) });
-    //     stop_btn.deactivate();
-    //     tunnel.add(&stop_btn);
-
-    //     let mut del_btn = Button::new(
-    //         self.basic_view.del_btn.x(),
-    //         y - 2,
-    //         self.basic_view.del_btn.width(),
-    //         self.basic_view.del_btn.h(),
-    //         None,
-    //     );
-    //     del_btn.set_image(Some(
-    //         SharedImage::load("asset\\del.png").expect("Could not find image: asset\\del.png"),
-    //     ));
-    //     del_btn.set_deimage(Some(
-    //         SharedImage::load("asset\\inactive_del.png")
-    //             .expect("Could not find image: ..\\asset\\inactive_del.png"),
-    //     ));
-    //     del_btn.set_frame(FrameType::FlatBox);
-    //     del_btn.set_color(Color::by_index(255));
-    //     del_btn.set_align(unsafe { std::mem::transmute(16) });
-    //     del_btn.activate();
-    //     tunnel.add(&del_btn);
-
-    //     let mut name_iuput = Input::new(
-    //         self.basic_view.name_iuput.x(),
-    //         y,
-    //         self.basic_view.name_iuput.w(),
-    //         self.basic_view.name_iuput.h(),
-    //         None,
-    //     );
-    //     name_iuput.set_label_type(LabelType::None);
-    //     tunnel.add(&name_iuput);
-    //     let mut forward_port_iuput = IntInput::new(
-    //         self.basic_view.forward_port_iuput.x(),
-    //         y,
-    //         self.basic_view.forward_port_iuput.w(),
-    //         self.basic_view.forward_port_iuput.h(),
-    //         None,
-    //     );
-    //     forward_port_iuput.set_label_type(LabelType::None);
-    //     tunnel.add(&forward_port_iuput);
-    //     let mut dst_server_port_input = Input::new(
-    //         self.basic_view.dst_server_port_input.x(),
-    //         y,
-    //         self.basic_view.dst_server_port_input.w(),
-    //         self.basic_view.dst_server_port_input.h(),
-    //         None,
-    //     );
-    //     dst_server_port_input.set_label_type(LabelType::None);
-    //     tunnel.add(&dst_server_port_input);
-    //     let mut ssh_username_iuput = Input::new(
-    //         self.basic_view.ssh_username_iuput.x(),
-    //         y,
-    //         self.basic_view.ssh_username_iuput.w(),
-    //         self.basic_view.ssh_username_iuput.h(),
-    //         None,
-    //     );
-    //     ssh_username_iuput.set_label_type(LabelType::None);
-    //     tunnel.add(&ssh_username_iuput);
-    //     let mut ssh_server_ip_iuput = Input::new(
-    //         self.basic_view.ssh_server_ip_iuput.x(),
-    //         y,
-    //         self.basic_view.ssh_server_ip_iuput.w(),
-    //         self.basic_view.ssh_server_ip_iuput.h(),
-    //         None,
-    //     );
-    //     ssh_server_ip_iuput.set_label_type(LabelType::None);
-    //     tunnel.add(&ssh_server_ip_iuput);
-    //     let mut ssh_port_iuput = IntInput::new(
-    //         self.basic_view.ssh_port_iuput.x(),
-    //         y,
-    //         self.basic_view.ssh_port_iuput.w(),
-    //         self.basic_view.ssh_port_iuput.h(),
-    //         None,
-    //     );
-    //     ssh_port_iuput.set_label_type(LabelType::None);
-    //     ssh_port_iuput.set_value("22");
-    //     tunnel.add(&ssh_port_iuput);
-    //     let mut pwd_input = SecretInput::new(
-    //         self.basic_view.pwd_input.x(),
-    //         y,
-    //         self.basic_view.pwd_input.w(),
-    //         self.basic_view.pwd_input.h(),
-    //         None,
-    //     );
-    //     pwd_input.set_label_type(LabelType::None);
-    //     tunnel.add(&pwd_input);
-    //     let mut fl2rust_widget_10 = Frame::new(self.basic_view.at_box.x(), y, 20, 20, "@@");
-    //     tunnel.add(&fl2rust_widget_10);
-    //     let mut fl2rust_widget_11 = Frame::new(self.basic_view.box2.x(), y, 10, 20, ":");
-    //     fl2rust_widget_11.set_label_font(Font::by_index(1));
-    //     tunnel.add(&fl2rust_widget_11);
-
-    //     let g_id = group_id.clone();
-    //     start_btn.set_callback(move |b| {
-    //         Self::send(UiMessage {
-    //             msg_type: MsgType::StartTunnel,
-    //             msg: g_id.to_owned(),
-    //         })
-    //     });
-
-    //     let g_id = group_id.clone();
-    //     stop_btn.set_callback(move |_| {
-    //         Self::send(UiMessage {
-    //             msg_type: MsgType::StopTunnel,
-    //             msg: g_id.to_owned(),
-    //         })
-    //     });
-
-    //     let g_id = group_id.clone();
-    //     del_btn.set_callback(move |_| {
-    //         Self::send(UiMessage {
-    //             msg_type: MsgType::DeleteTunnel,
-    //             msg: g_id.to_owned(),
-    //         })
-    //     });
-
-    //     self.tunnel_rows.push((
-    //         tunnel,
-    //         index_txt,
-    //         name_iuput,
-    //         forward_type_choice,
-    //         start_btn,
-    //         stop_btn,
-    //         forward_port_iuput,
-    //         dst_server_port_input,
-    //         ssh_username_iuput,
-    //         ssh_server_ip_iuput,
-    //         ssh_port_iuput,
-    //         pwd_input,
-    //         del_btn,
-    //     ));
-    // }
-
-    pub fn delete_ssh_tunnel_row(&mut self, index: usize) {
-        // println!("index:{index}");
-        // if self.tunnel_rows.len() > index {
-        //     for i in (index + 1..self.tunnel_rows.len()).rev() {
-        //         let (x, y) = (self.tunnel_rows[i - 1].0.x(), self.tunnel_rows[i - 1].0.y());
-        //         self.tunnel_rows[i].0.set_pos(x, y);
-        //         self.tunnel_rows[i]
-        //             .1
-        //             .set_label((i - 1).to_string().as_str());
-        //     }
-        //     self.basic_view
-        //         .scroll_view
-        //         .remove(&self.tunnel_rows[index].0);
-        //     let tunnel = self.tunnel_rows.remove(index);
-        //     drop(tunnel);
-
-        //     self.basic_view.main_window.redraw();
-        // }
+        Err(anyhow!("can not found this config row by id:{id}"))
     }
-
-    // pub fn try_verify_start_tunnel_params(
-    //     &self,
-    //     index: usize,
-    // ) -> Result<(String, String, i32, String, String, String, i32, String)> {
-    //     let (
-    //         _,
-    //         _,
-    //         name_iuput,
-    //         forward_type_choice,
-    //         _,
-    //         _,
-    //         forward_port_iuput,
-    //         dst_server_port_input,
-    //         ssh_username_iuput,
-    //         ssh_server_ip_iuput,
-    //         ssh_port_iuput,
-    //         pwd_input,
-    //         _,
-    //     ): &(
-    //         Group,
-    //         Frame,
-    //         Input,
-    //         Choice,
-    //         Button,
-    //         Button,
-    //         IntInput,
-    //         Input,
-    //         Input,
-    //         Input,
-    //         IntInput,
-    //         SecretInput,
-    //         Button,
-    //     ) = &self.tunnel_rows.get(index).unwrap();
-    //     let name = name_iuput.value();
-    //     let forwart_type = match forward_type_choice.choice() {
-    //         Some(c) => c,
-    //         None => return Err(anyhow!("[Type] must be select.")),
-    //     };
-    //     let forward_port = forward_port_iuput.value().parse::<i32>()?;
-    //     let dst_server_port = dst_server_port_input.value();
-    //     if dst_server_port.is_empty() {
-    //         return Err(anyhow!("[Dst host:port] can not be empty."));
-    //     }
-
-    //     let ssh_username = ssh_username_iuput.value();
-    //     if ssh_username.is_empty() {
-    //         return Err(anyhow!("[username] can not be empty."));
-    //     }
-
-    //     let ssh_server_ip = ssh_server_ip_iuput.value();
-    //     if ssh_server_ip.is_empty() {
-    //         return Err(anyhow!("[ssh server ip] can not be empty."));
-    //     }
-    //     let ssh_port = ssh_port_iuput.value().parse::<i32>()?;
-    //     let pwd = pwd_input.value();
-    //     if pwd.is_empty() {
-    //         return Err(anyhow!("[password] can not be empty."));
-    //     }
-
-    //     Ok((
-    //         name,
-    //         forwart_type,
-    //         forward_port,
-    //         dst_server_port,
-    //         ssh_username,
-    //         ssh_server_ip,
-    //         ssh_port,
-    //         pwd,
-    //     ))
-    // }
-
-    // pub fn get_cur_index(&self, key: &str) -> usize {
-    //     let mut index = usize::MAX;
-    //     for i in 0..self.tunnel_rows.len() {
-    //         if self.tunnel_rows[i].0.label() == key.to_string() {
-    //             index = i;
-    //             break;
-    //         }
-    //     }
-    //     println!("cur index:{index}");
-    //     return index;
-    // }
 }
 
-fn send(m: UiMessage) {
+pub fn send(m: UiMessage) {
     match &RWLOCK_MSG_CHANNEL.read() {
         Ok(channel) => {
             let sender = &channel.0;
@@ -1115,194 +920,250 @@ fn send(m: UiMessage) {
     }
 }
 
+fn trans_bytes_to_png(bytes: &[u8], width: u32, height: u32) -> PngImage {
+    let o_img = image::load_from_memory(bytes).unwrap();
+    let image_buffer: ImageBuffer<Rgba<u8>, Vec<u8>> = image::imageops::resize(&o_img, width, height, image::imageops::FilterType::Gaussian);
+    let dynamic_image: DynamicImage = DynamicImage::ImageRgba8(image_buffer);
+    let mut ib = vec![];
+    dynamic_image
+        .write_to(&mut std::io::Cursor::new(&mut ib), image::ImageOutputFormat::Png)
+        .unwrap();
+    let image = PngImage::from_data(&ib).unwrap();
+
+    image
+}
+
+#[derive(Debug)]
+pub enum SSHTunnelCommand {
+    Start,
+    Stop,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub enum SSHTunnelThreadEventType {
+    PortIsBeenUsed,
+    NotConnectSSHServer,
+    ConnectionBroken,
+    SSHConnectError,
+    CommonError,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct SSHTunnelThreadEvent {
+    pub event_type: SSHTunnelThreadEventType,
+    pub data: String,
+}
+
+pub fn handle_ssh_tunnel_event(command_rx: std::sync::mpsc::Receiver<(SSHTunnelCommand, Option<SSHTunnel>, i32)>) {
+    let (ui_tunnel_sx, mut ui_tunnel_rx) = tokio::sync::mpsc::channel::<SSHTunnelThreadEvent>(256);
+    std::thread::spawn(move || {
+        let rt = tokio::runtime::Runtime::new().unwrap();
+        rt.block_on(async move {
+            let ui_tunnel_sx = Arc::new(Mutex::new(ui_tunnel_sx));
+            let mut ssh_tunnel_dict = HashMap::<i32, SSHTunnel>::new();
+
+            loop {
+                let ui_tunnel_sx_arc = ui_tunnel_sx.clone();
+                info!("waiting a command send...");
+                match command_rx.recv() {
+                    Ok((SSHTunnelCommand::Start, Some(mut tunnel), id)) => {
+                        info!("accept start command, tunnel:{:?}", tunnel);
+                        let t_option = ssh_tunnel_dict.get_mut(&tunnel.id);
+
+                        if let Some(t) = t_option {
+                            info!("stop a existed tunnel:{:?}", t);
+                            t.stop().await.unwrap();
+                        }
+
+                        info!("start a new tunnel.");
+                        if let Err(e) = tunnel.start(ui_tunnel_sx_arc).await {
+                            error!("tunnel:{:?} start error:{:?}", tunnel, e);
+                        } else {
+                            ssh_tunnel_dict.insert(tunnel.id, tunnel);
+                        }
+                    }
+                    Ok((SSHTunnelCommand::Stop, None, id)) => {
+                        info!("accept stop command, id:{:?}", id);
+                        let t_option = ssh_tunnel_dict.get_mut(&id);
+                        match t_option {
+                            Some(t) => {
+                                t.stop().await.unwrap();
+                            }
+                            None => {
+                                warn!("nothing to do, because can not found id:{}", id);
+                            }
+                        }
+                    }
+
+                    Err(e) => {
+                        error!("accept SSHTunnelCommand error:{:?}", e);
+                        tokio::time::sleep(Duration::from_millis(3000)).await;
+                    }
+                    _ => {}
+                }
+            }
+
+            // let uuu = ui_sx.clone();
+            // uuu.lock().await.send(SSHTunnelThreadEvent { event_type: SSHTunnelThreadEventType::SSHConnectError, data: "".to_owned() });
+        });
+    });
+
+    std::thread::spawn(move || {
+        let rt = tokio::runtime::Runtime::new().unwrap();
+        rt.block_on(async move {
+            loop {
+                match ui_tunnel_rx.recv().await {
+                    Some(r) => send(UiMessage {
+                        msg_type: MsgType::StartTunnelFailed,
+                        msg: r.data,
+                    }),
+                    None => {
+                        todo!();
+                        warn!("ui_tunnel_rx recv None.")
+                    }
+                }
+            }
+        });
+    });
+}
+
 pub fn handle_view_msg(
+    (screen_width, screen_height): (f64, f64),
     view: &mut SSHTunnelView,
     ui_msg: UiMessage,
-    map: &mut HashMap<usize, SSHTunnel>,
+    ssh_tunnel_event_sender: &mut std::sync::mpsc::Sender<(SSHTunnelCommand, Option<SSHTunnel>, i32)>,
 ) {
+    // let g: GlobalState<crate::G> = fltk::app::GlobalState::get();
+    // g.with(|gg| println!("handle_view_msg g:{:?}", gg));
+
     match ui_msg.msg_type {
         MsgType::INFO => todo!(),
         MsgType::ERROR => todo!(),
-        MsgType::AddLocalTunnelRow => view.add_ssh_remote_tunnel_row(),
-        MsgType::AddRemoteTunnelRow => view.add_ssh_local_tunnel_row(),
+        MsgType::AddLocalTunnelRow => view.add_ssh_local_tunnel_row(None),
+        MsgType::AddRemoteTunnelRow => view.add_ssh_remote_tunnel_row(None),
         MsgType::StartTunnel => {
-            // println!("recv message :{:?}", ui_msg);
-            // let index = view.get_cur_index(&ui_msg.msg);
-
-            // if index == usize::MAX {
-            //     fltk::dialog::alert_default(&format!(
-            //         "can not found this({}) tunnel row.",
-            //         ui_msg.msg
-            //     ));
-            //     return;
-            // }
-
-            // let (
-            //     name,
-            //     forwart_type,
-            //     forward_port,
-            //     dst_server_port,
-            //     ssh_username,
-            //     ssh_server_ip,
-            //     ssh_port,
-            //     pwd,
-            // ) = match view.try_verify_start_tunnel_params(index) {
-            //     Ok(t) => t,
-            //     Err(err) => {
-            //         fltk::dialog::alert_default(&format!("Oops! An error occurred:{:?}", err));
-            //         return;
-            //     }
-            // };
-
-            // let (
-            //     _,
-            //     _,
-            //     _,
-            //     forward_type_choice,
-            //     start_btn,
-            //     stop_btn,
-            //     forward_port_iuput,
-            //     dst_server_port_input,
-            //     ssh_username_iuput,
-            //     ssh_server_ip_iuput,
-            //     ssh_port_iuput,
-            //     pwd_input,
-            //     del_btn,
-            // ): &mut (
-            //     Group,
-            //     Frame,
-            //     Input,
-            //     Choice,
-            //     Button,
-            //     Button,
-            //     IntInput,
-            //     Input,
-            //     Input,
-            //     Input,
-            //     IntInput,
-            //     SecretInput,
-            //     Button,
-            // ) = view.tunnel_rows.get_mut(index).unwrap();
-
-            // start_btn.deactivate();
-            // stop_btn.deactivate();
-
-            // if map.contains_key(&index) {
-            //     let st = map.remove(&index).unwrap();
-            //     drop(st);
-            // }
-
-            // let mut ssh_tunnel = SSHTunnel::new(
-            //     &ui_msg.msg,
-            //     &name,
-            //     &forwart_type,
-            //     forward_port,
-            //     &dst_server_port,
-            //     &ssh_username,
-            //     &ssh_server_ip,
-            //     ssh_port,
-            //     &pwd,
-            //     crate::ssh_tunnel::Status::Started,
-            // );
-
-            // ssh_tunnel.start_tunnel().unwrap();
-            // map.insert(index, ssh_tunnel);
-
-            // stop_btn.activate();
-            // del_btn.deactivate();
-            // forward_type_choice.deactivate();
-            // forward_port_iuput.deactivate();
-            // dst_server_port_input.deactivate();
-            // ssh_username_iuput.deactivate();
-            // ssh_server_ip_iuput.deactivate();
-            // ssh_port_iuput.deactivate();
-            // pwd_input.deactivate();
+            let id = ui_msg.msg.parse::<i32>().unwrap();
+            match view.try_verify_start_tunnel_params(id) {
+                Ok(t) => {
+                    ssh_tunnel_event_sender.send((SSHTunnelCommand::Start, Some(t), id)).unwrap();
+                }
+                Err(e) => alert_default(&format!("start params error:{:?}", e)),
+            }
         }
         MsgType::StopTunnel => {
-            // println!("recv message :{:?}", ui_msg);
-            // let index = view.get_cur_index(&ui_msg.msg);
-
-            // if index == usize::MAX {
-            //     fltk::dialog::alert_default(&format!(
-            //         "can not found this({}) tunnel row.",
-            //         ui_msg.msg
-            //     ));
-            //     return;
-            // }
-            // let tunnel = map.get_mut(&index).unwrap();
-            // tunnel.stop_tunnel();
-
-            // let (
-            //     _,
-            //     _,
-            //     _,
-            //     forward_type_choice,
-            //     start_btn,
-            //     stop_btn,
-            //     forward_port_iuput,
-            //     dst_server_port_input,
-            //     ssh_username_iuput,
-            //     ssh_server_ip_iuput,
-            //     ssh_port_iuput,
-            //     pwd_input,
-            //     del_btn,
-            // ): &mut (
-            //     Group,
-            //     Frame,
-            //     Input,
-            //     Choice,
-            //     Button,
-            //     Button,
-            //     IntInput,
-            //     Input,
-            //     Input,
-            //     Input,
-            //     IntInput,
-            //     SecretInput,
-            //     Button,
-            // ) = view.tunnel_rows.get_mut(index).unwrap();
-
-            // stop_btn.deactivate();
-            // start_btn.activate();
-            // del_btn.activate();
-            // forward_type_choice.activate();
-            // forward_port_iuput.activate();
-            // dst_server_port_input.activate();
-            // ssh_username_iuput.activate();
-            // ssh_server_ip_iuput.activate();
-            // ssh_port_iuput.activate();
-            // pwd_input.activate();
+            let id = ui_msg.msg.parse::<i32>().unwrap();
+            if deactive_ui_row(id, view, "".to_owned()) {
+                ssh_tunnel_event_sender.send((SSHTunnelCommand::Stop, None, id)).unwrap();
+            }
         }
         MsgType::ResizeMainWindow => {
             let arr = ui_msg.msg.split("|").collect::<Vec<&str>>();
             let w = arr.get(2).unwrap().parse::<i32>().unwrap();
             let h = arr.get(3).unwrap().parse::<i32>().unwrap();
 
-            view.basic_view.scroll_view.resize(
-                view.basic_view.scroll_view.x(),
-                view.basic_view.scroll_view.y(),
-                w,
-                h - 60,
-            );
+            view.basic_view
+                .scroll_view
+                .resize(view.basic_view.scroll_view.x(), view.basic_view.scroll_view.y(), w, h - 60);
             view.basic_view.main_window.redraw();
         }
         MsgType::DeleteTunnel => {
-            // let index = view.get_cur_index(&ui_msg.msg);
+            let id = ui_msg.msg.parse::<i32>().unwrap();
 
-            // if index == usize::MAX {
-            //     fltk::dialog::alert_default(&format!(
-            //         "can not found this({}) tunnel row.",
-            //         ui_msg.msg
-            //     ));
-            //     return;
-            // }
-            // if map.contains_key(&index) {
-            //     let st = map.remove(&index).unwrap();
-            //     drop(st);
-            // }
-            // view.delete_ssh_tunnel_row(index);
+            if let Some(index) = view.tunnel_rows.iter().position(|t| t.id == id) {
+                let removed_element = view.tunnel_rows.remove(index);
+                ssh_tunnel_event_sender.send((SSHTunnelCommand::Stop, None, removed_element.id)).unwrap();
+                view.basic_view.scroll_view.remove(&removed_element.row_group);
+
+                let y_offset = view.basic_view.local_tunnel_group.h() + 10;
+                for idx in index..view.tunnel_rows.len() {
+                    let index_txt = &mut view.tunnel_rows[idx].index_txt;
+                    index_txt.set_label(idx.to_string().as_str());
+
+                    let x = view.tunnel_rows[idx].row_group.x();
+                    let y = view.tunnel_rows[idx].row_group.y() - y_offset;
+                    view.tunnel_rows[idx].row_group.set_pos(x, y);
+                }
+            }
+        }
+        MsgType::UpdateConfig => {
+            save_config(view);
+        }
+        MsgType::StartTunnelFailed => {
+            let datas = ui_msg.msg.split("|").collect::<Vec<&str>>();
+            let id = datas[0].parse::<i32>().unwrap();
+            let info_data = datas[1].to_string();
+            if deactive_ui_row(id, view, info_data) {
+                ssh_tunnel_event_sender.send((SSHTunnelCommand::Stop, None, id)).unwrap();
+            }
+        }
+        MsgType::ShowTunnelInfoDialog => {
+            let id = ui_msg.msg.parse::<i32>().unwrap();
+            let row_ot = view.tunnel_rows.iter_mut().find(|t| t.id == id);
+            if let Some(row) = row_ot {
+                show_tunnel_info(screen_width, screen_height, &row.info_data);
+                row.info_btn.set_label_color(Color::by_index(38));
+            }
         }
     }
 
     view.basic_view.scroll_view.redraw();
+}
+
+fn show_tunnel_info(screen_width: f64, screen_height: f64, log: &str) {
+    let w: i32 = 800;
+    let h = 400;
+    let mut help = fltk::dialog::HelpDialog::new((screen_width.floor() as i32 - w) / 2, (screen_height.floor() as i32 - h) / 2, w, h);
+    help.set_text_size(16);
+    help.set_value(format!("<div>{log}</div>").as_str()); // this takes html
+    help.show();
+    while help.shown() {
+        fltk::app::wait();
+    }
+}
+
+fn deactive_ui_row(id: i32, view: &mut SSHTunnelView, info_data: String) -> bool {
+    let row_ot = view.tunnel_rows.iter_mut().find(|t| t.id == id);
+    if let Some(row) = row_ot {
+        if !info_data.is_empty() {
+            row.info_btn.set_label_color(Color::Red);
+            row.info_data += "<br>";
+            row.info_data += &info_data;
+        }
+
+        row.start_btn.activate();
+        row.stop_btn.deactivate();
+        row.del_btn.activate();
+        row.listen_port_input.activate();
+        row.ssh_server_host_input.activate();
+        row.ssh_server_port_input.activate();
+        row.ssh_server_username_input.activate();
+        row.ssh_server_pwd_input.activate();
+        row.real_service_host_input.activate();
+        row.real_service_port_input.activate();
+
+        true
+    } else {
+        false
+    }
+}
+
+pub fn save_config(view: &mut SSHTunnelView) {
+    let mut configs: Vec<SSHTunnelJson> = vec![];
+    for row in view.tunnel_rows.iter() {
+        let json_row = SSHTunnelJson {
+            id: row.id,
+            name: row.name_input.value(),
+
+            forward_type: row.tunnel_type,
+            forward_port: row.listen_port_input.value(),
+            real_service_host: row.real_service_host_input.value(),
+            real_service_port: row.real_service_port_input.value(),
+            ssh_user: row.ssh_server_username_input.value(),
+            ssh_host: row.ssh_server_host_input.value(),
+            ssh_port: row.ssh_server_port_input.value(),
+            ssh_pwd: row.ssh_server_pwd_input.value(),
+        };
+        configs.push(json_row);
+    }
+    config::save_config(&configs).unwrap();
 }
