@@ -3,12 +3,27 @@ use std::{
     io::{self, Read, Write},
     net::TcpStream,
     path::{Path, PathBuf},
-    time::Instant,
+    thread,
+    time::{Duration, Instant},
 };
 
 use ssh2::{Session, Sftp};
 
+fn test_connect() {
+    for i in 0..20240 {
+        thread::sleep(Duration::from_millis(20));
+        std::thread::spawn(move || {
+            let sftp = get_sftp();
+            let s = sftp.readdir(Path::new("/")).unwrap();
+            println!("list index:{i},{:?}", s);
+            thread::sleep(Duration::from_secs(30000000));
+        });
+    }
+}
+
 fn main() {
+    test_connect();
+    thread::sleep(Duration::from_secs(30000000));
     let sftp = get_sftp();
     let file = sftp.realpath(Path::new("/")).unwrap();
     let stat = sftp.lstat(Path::new("/vincent/678.txt")).unwrap();
@@ -42,12 +57,12 @@ fn main() {
 
 fn get_sftp() -> Sftp {
     // Connect to the local SSH server
-    let tcp = TcpStream::connect("ip:port").unwrap();
+    let tcp = TcpStream::connect("10.184.72.46:50144").unwrap();
     let mut sess = Session::new().unwrap();
     sess.set_tcp_stream(tcp);
     sess.handshake().unwrap();
 
-    sess.userauth_password("user", "pwd").unwrap();
+    sess.userauth_password("ftpuser", "1qasw@").unwrap();
     let sftp = sess.sftp().unwrap();
 
     sftp
