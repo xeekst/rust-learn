@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+<WLANProfile xmlns="http://www.microsoft.com/networking/WLAN/profile/v1">
+	<name>X40</name>
+	<SSIDConfig>
+		<SSID>
+			<hex>6D6F746F205834305F31303133</hex>
+			<name>moto X40_1013</name>
+		</SSID>
+	</SSIDConfig>
+	<connectionType>ESS</connectionType>
+	<connectionMode>manual</connectionMode>
+	<MSM>
+		<security>
+			<authEncryption>
+				<authentication>WPA3SAE</authentication>
+				<encryption>AES</encryption>
+				<useOneX>false</useOneX>
+			</authEncryption>
+			<sharedKey>
+				<keyType>passPhrase</keyType>
+				<protected>true</protected>
+				<keyMaterial>01000000D08C9DDF0115D1118C7A00C04FC297EB0100000058D24E24FCC2B34FA54BDA0713DEF3C300000000020000000000106600000001000020000000BE8E493CD89D53555E4E988053962FA28EC9CDC2D2A6D6EAA992815D16E7C241000000000E8000000002000020000000D51BA3A9C26C7A5F4FE7B2476D9C9C8735E4CE7E4C112887402102C09FE5DB1C10000000C6752332E2C53FF80921B53422AF1FC240000000CE7D528A75D6E2664C564C2ED4F057072E034B7EF3064B6E9072DDE9773339C835B9B9CBABD2A43F4E964D4F5335DF0BBCBF93FBB7D5C63C5520ABD2DEC05D3E</keyMaterial>
+			</sharedKey>
+		</security>
+	</MSM>
+	<MacRandomization xmlns="http://www.microsoft.com/networking/WLAN/profile/v3">
+		<enableRandomization>false</enableRandomization>
+		<randomizationSeed>3120798386</randomizationSeed>
+	</MacRandomization>
+</WLANProfile>
