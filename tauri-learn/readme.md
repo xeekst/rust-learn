@@ -7,7 +7,7 @@ cargo install tauri-cli
 
 ### 创建tauri app
 ```
-yarn create tauri-app --template vue-ts
+cargo create tauri-app
 ```
 
 ### 测试运行
