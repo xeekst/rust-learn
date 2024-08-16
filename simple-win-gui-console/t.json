@@ -1,0 +1,21 @@
+{
+    "requestId": "6",
+    "status": true,
+    "errorMessage": "",
+    "data": [
+        {
+            "businessType": "Preload",
+            "caseCount": 134,
+            "stepCount": 131,
+            "automatedCount": 123,
+            "autoRate": 0.95
+        },
+        {
+            "businessType": "SO",
+            "caseCount": 134,
+            "stepCount": 131,
+            "automatedCount": 123,
+            "autoRate": 0.92
+        }
+    ]
+}
