@@ -1,0 +1,7 @@
+[package]
+name = "actor-concurrent-multi-thread"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+actix = "0.13"
