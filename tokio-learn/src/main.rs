@@ -1,5 +1,5 @@
 use chrono::Local;
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 use std::{sync::Arc, thread, time::Duration};
 use tokio::{
     self,
@@ -83,6 +83,40 @@ async fn task_yield_now() {
     println!("main task done!");
 }
 
+async fn cancel_token() {
+    // Step 1: Create a new CancellationToken
+    let token = CancellationToken::new();
+
+    // Step 2: Clone the token for use in another task
+    let cloned_token = token.clone();
+
+    // Task 1 - Wait for token cancellation or a long time
+    let task1_handle = tokio::spawn(async move {
+        tokio::select! {
+            // Step 3: Using cloned token to listen to cancellation requests
+            _ = cloned_token.cancelled() => {
+                println!("cloned_token.cancelled()");
+                // The token was cancelled, task can shut down
+            }
+            _ = tokio::time::sleep(std::time::Duration::from_secs(9999)) => {
+                println!("sleep 9999");
+                // Long work has completed
+            }
+        }
+    });
+
+    // Task 2 - Cancel the original token after a small delay
+    tokio::spawn(async move {
+        tokio::time::sleep(std::time::Duration::from_millis(10)).await;
+
+        // Step 4: Cancel the original or cloned token to notify other tasks about shutting down gracefully
+        token.cancel();
+    });
+
+    // Wait for tasks to complete
+    task1_handle.await.unwrap()
+}
+
 fn cancel_task() {
     let rt = Runtime::new().unwrap();
 
@@ -163,6 +197,28 @@ fn await_any_finish_select() {
 
         println!("select! done");
     });
+}
+
+async fn test_else() {
+    let (mut tx1, mut rx1) = tokio::sync::mpsc::channel::<Option<i32>>(128);
+    let (mut tx2, mut rx2) = tokio::sync::mpsc::channel::<Option<i32>>(128);
+
+    tokio::spawn(async move {
+        tx1.send(None).await;
+        // Do something w/ `tx1` and `tx2`
+    });
+
+    tokio::select! {
+        Some(v) = rx1.recv() => {
+            println!("Got {:?} from rx1", v);
+        }
+        Some(v) = rx2.recv() => {
+            println!("Got {:?} from rx2", v);
+        }
+        else => {
+            println!("Both channels closed");
+        }
+    }
 }
 
 fn await_any_finish_select_biased() {
@@ -419,7 +475,7 @@ use futures_util::stream::{SplitSink, SplitStream};
 use futures_util::{SinkExt, StreamExt};
 use tokio::net::TcpListener;
 use tokio::sync::mpsc;
-use tokio_util::codec::{Framed, LinesCodec, self};
+use tokio_util::{codec::{self, Framed, LinesCodec}, sync::CancellationToken};
 
 fn test_frame_line() {
     let rt = Runtime::new().unwrap();
@@ -518,7 +574,7 @@ async fn write_to_client(mut writer: LineFramedSink, mut msg_rx: mpsc::Receiver<
 //     fn encode(&mut self, item: RstResp, dst: &mut BytesMut) -> Result<(), Self::Error> {
 //         let data = bincode::serialize(&item)?;
 //         let data = data.as_slice();
-      
+
 //         // 要传输的实际数据的长度
 //         let data_len = data.len();
 //         if data_len > Self::MAX_SIZE {
@@ -526,16 +582,16 @@ async fn write_to_client(mut writer: LineFramedSink, mut msg_rx: mpsc::Receiver<
 //                 "frame is too large".to_string(),
 //             )));
 //         }
-      
+
 //         // 最大传输u32的数据(可最多512G)，
 //         // 表示数据长度的u32数值占用4个字节
 //         dst.reserve(data_len + 4);
-      
+
 //         // 先将长度值写入dst，即帧首，
 //         // 写入的字节序是大端的u32，读取时也要大端格式读取，
 //         // 也有小端的方法`put_u32_le()`，读取时也得小端读取
 //         dst.put_u32(data_len as u32);
-      
+
 //         // 再将实际数据放入帧尾
 //         dst.extend_from_slice(data);
 //         Ok(())
@@ -583,6 +639,8 @@ async fn write_to_client(mut writer: LineFramedSink, mut msg_rx: mpsc::Receiver<
 //     }
 // }
 
-fn main() {
-    test_frame_line();
+#[tokio::main]
+async fn main() {
+    //test_frame_line();
+    test_else().await;
 }
