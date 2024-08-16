@@ -1,0 +1,22 @@
+[package]
+name = "windows-service-by-winapi"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+winapi = { version = "0.3", features = [
+    "psapi",
+    "shellapi",
+    "handleapi",
+    "tlhelp32",
+    "winuser",
+    "winnls",
+    "winbase",
+    "errhandlingapi",
+    "winsvc",
+    "winerror"
+] }
+widestring = "1"
+rand = "0.8"
